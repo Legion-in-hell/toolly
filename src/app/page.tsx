@@ -3,18 +3,16 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Définir les catégories d'outils
 const categories = [
@@ -35,7 +33,7 @@ const tools = [
     description: "Convertissez vos fichiers PDF en documents Word éditables",
     category: "conversion",
     popular: true,
-    comingSoon: false,
+    comingSoon: true,
     path: "/tools/pdf-to-word",
     icon: "📄",
   },
@@ -57,7 +55,7 @@ const tools = [
       "Supprimez les informations personnelles cachées dans vos fichiers",
     category: "privacy",
     popular: false,
-    comingSoon: false,
+    comingSoon: true,
     path: "/tools/metadata-cleaner",
     icon: "🔒",
   },
@@ -67,7 +65,7 @@ const tools = [
     description: "Transformez un texte complexe en langage accessible",
     category: "text",
     popular: false,
-    comingSoon: false,
+    comingSoon: true,
     path: "/tools/text-simplifier",
     icon: "📝",
   },
@@ -77,7 +75,7 @@ const tools = [
     description: "Extrayez des tableaux depuis des PDFs ou des images",
     category: "extraction",
     popular: true,
-    comingSoon: false,
+    comingSoon: true,
     path: "/tools/table-extractor",
     icon: "📊",
   },
@@ -87,7 +85,7 @@ const tools = [
     description: "Combinez plusieurs fichiers en un seul document",
     category: "misc",
     popular: false,
-    comingSoon: false,
+    comingSoon: true,
     path: "/tools/file-merger",
     icon: "🔄",
   },
@@ -98,7 +96,7 @@ const tools = [
       "Convertissez entre différents formats audio avec options avancées",
     category: "conversion",
     popular: false,
-    comingSoon: false,
+    comingSoon: true,
     path: "/tools/audio-converter",
     icon: "🎵",
   },
@@ -119,7 +117,7 @@ const tools = [
     description: "Créez des QR codes personnalisés avec suivi d'utilisation",
     category: "misc",
     popular: true,
-    comingSoon: false,
+    comingSoon: true,
     path: "/tools/qr-generator",
     icon: "📱",
   },

@@ -108,7 +108,7 @@ export default function Footer() {
                   href="/terms"
                   className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Conditions d'utilisation
+                  Conditions d&apos;utilisation
                 </Link>
               </li>
             </ul>

@@ -1,0 +1,52 @@
+# .github/workflows/deploy.yml
+name: Deploy Toolly to VPS
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # Spécifier l'environnement contenant les secrets
+    environment: SSH_PRIVATE_KEY
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: CI=false npm run build
+        env:
+          NEXT_DISABLE_ESLINT: 1
+      
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+      
+      - name: Test connection
+        run: sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no root@89.116.38.109 "echo 'Connected to VPS successfully'"
+      
+      - name: Deploy with rsync
+        run: |
+          sshpass -p "${{ secrets.VPS_PASSWORD }}" rsync -avz --delete \
+            --exclude=".git/" \
+            --exclude=".github/" \
+            --exclude="node_modules/" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ root@89.116.38.109:${{ secrets.DEPLOY_PATH }}
+      
+      - name: Run post-deployment commands
+        run: |
+          sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no root@89.116.38.109 << 'EOF'
+            cd ${{ secrets.DEPLOY_PATH }}
+            npm install --production
+            pm2 restart toolly || pm2 start npm --name "toolly" -- start
+          EOF

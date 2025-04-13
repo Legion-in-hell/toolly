@@ -1,7 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable jsx-a11y/alt-text */
 // app/tools/image-compressor/page.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   Upload,
   ChevronRight,
@@ -143,7 +145,6 @@ export default function ImageCompressor() {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
-      // Définir les dimensions du canvas (ici on maintient la taille originale)
       canvas.width = img.width;
       canvas.height = img.height;
 
@@ -191,7 +192,7 @@ export default function ImageCompressor() {
     const link = document.createElement("a");
     link.href = compressedImage;
     link.download = `compressed_${
-      file?.name.split(".")[0] || "image"
+      file?.name.split(".")[0] ?? "image"
     }.${format}`;
     document.body.appendChild(link);
     link.click();
@@ -246,7 +247,7 @@ export default function ImageCompressor() {
           </BreadcrumbSeparator>
           <BreadcrumbItem>
             <BreadcrumbLink href="/tools/image-compressor">
-              Compresseur d'images
+              Compresseur d&apos;images
             </BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -254,21 +255,28 @@ export default function ImageCompressor() {
 
       {/* En-tête de l'outil */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4">Compresseur d'images</h1>
+        <h1 className="text-3xl font-bold mb-4">Compresseur d&apos;images</h1>
         <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
           Réduisez la taille de vos images sans perte visible de qualité. Idéal
-          pour optimiser les images pour le web ou l'envoi par email.
+          pour optimiser les images pour le web ou l&apos;envoi par email.
         </p>
       </div>
 
       <Card className="p-6 mb-8 border-2">
         {/* Zone de dépôt de fichier (affichée seulement si aucune image n'est sélectionnée) */}
         {!file && (
-          <div
+          <button
+            type="button"
             className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
           >
             <input
               type="file"
@@ -290,9 +298,8 @@ export default function ImageCompressor() {
                 </p>
               </div>
             </div>
-          </div>
+          </button>
         )}
-
         {/* Affichage de l'image et options de compression */}
         {file && originalPreview && (
           <div>
@@ -331,7 +338,10 @@ export default function ImageCompressor() {
                   ) : (
                     <div className="text-center text-gray-500 dark:text-gray-400">
                       <Settings2 className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                      <p>Ajustez les paramètres et cliquez sur "Compresser"</p>
+                      <p>
+                        Ajustez les paramètres et cliquez sur
+                        &quot;Compresser&quot;
+                      </p>
                     </div>
                   )}
                 </div>
@@ -345,148 +355,146 @@ export default function ImageCompressor() {
                 Options de compression
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Qualité */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="quality" className="text-sm font-medium">
-                      Qualité : {quality}%
-                    </label>
-                    <span className="text-xs text-gray-500">
-                      {quality < 50
-                        ? "Basse"
-                        : quality < 80
-                        ? "Moyenne"
-                        : "Haute"}
-                    </span>
-                  </div>
-                  <Slider
-                    id="quality"
-                    min={10}
-                    max={100}
-                    step={5}
-                    value={[quality]}
-                    onValueChange={(value) => setQuality(value[0])}
-                    className="mb-6"
-                  />
-                </div>
-
-                {/* Format */}
-                <div>
-                  <label
-                    htmlFor="format"
-                    className="text-sm font-medium block mb-2"
-                  >
-                    Format de sortie
-                  </label>
-                  <Select
-                    value={format}
-                    onValueChange={(value) => setFormat(value as ImageFormat)}
-                  >
-                    <SelectTrigger id="format">
-                      <SelectValue placeholder="Sélectionner un format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="jpeg">
-                        JPEG (recommandé pour photos)
-                      </SelectItem>
-                      <SelectItem value="png">
-                        PNG (pour images avec transparence)
-                      </SelectItem>
-                      <SelectItem value="webp">
-                        WebP (meilleure compression, support limité)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="quality" className="text-sm font-medium">
+                  Qualité : {quality}%
+                </label>
+                <span className="text-xs text-gray-500">
+                  {(() => {
+                    let qualityLabel;
+                    if (quality < 50) {
+                      qualityLabel = "Basse";
+                    } else if (quality < 80) {
+                      qualityLabel = "Moyenne";
+                    } else {
+                      qualityLabel = "Haute";
+                    }
+                    return qualityLabel;
+                  })()}
+                </span>
               </div>
+              <Slider
+                id="quality"
+                min={10}
+                max={100}
+                step={5}
+                value={[quality]}
+                onValueChange={(value) => setQuality(value[0])}
+                className="mb-6"
+              />
             </div>
 
-            {/* Message d'erreur */}
-            {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertTitle>Erreur</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Résultats de compression */}
-            {compressedImage && (
-              <div className="mb-6 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                <h3 className="font-medium mb-2 flex items-center gap-2 text-green-700 dark:text-green-400">
-                  <Check className="h-5 w-5" />
-                  Compression réussie !
-                </h3>
-                <div className="grid grid-cols-3 gap-4 text-center mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Taille originale
-                    </p>
-                    <p className="font-medium">{formatSize(originalSize)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Taille compressée
-                    </p>
-                    <p className="font-medium">{formatSize(compressedSize)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Réduction
-                    </p>
-                    <p className="font-medium text-green-600 dark:text-green-400">
-                      {calculateReduction()}%
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Boutons d'actions */}
-            <div className="flex flex-col gap-3 mt-6">
-              {!compressedImage ? (
-                <Button
-                  onClick={compressImage}
-                  disabled={isCompressing}
-                  className="w-full"
-                >
-                  {isCompressing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Compression en cours...
-                    </>
-                  ) : (
-                    <>
-                      <Settings2 className="mr-2 h-4 w-4" />
-                      Compresser l'image
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <>
-                  <Button onClick={handleDownload} className="w-full">
-                    <Download className="mr-2 h-4 w-4" />
-                    Télécharger l'image compressée
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    onClick={compressImage}
-                    disabled={isCompressing}
-                    className="w-full"
-                  >
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Recompresser avec les options actuelles
-                  </Button>
-                </>
-              )}
-
-              <Button variant="ghost" onClick={resetForm} className="w-full">
-                Choisir une autre image
-              </Button>
+            {/* Format */}
+            <div>
+              <label
+                htmlFor="format"
+                className="text-sm font-medium block mb-2"
+              >
+                Format de sortie
+              </label>
+              <Select
+                value={format}
+                onValueChange={(value) => setFormat(value as ImageFormat)}
+              >
+                <SelectTrigger id="format">
+                  <SelectValue placeholder="Sélectionner un format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="jpeg">
+                    JPEG (recommandé pour photos)
+                  </SelectItem>
+                  <SelectItem value="png">
+                    PNG (pour images avec transparence)
+                  </SelectItem>
+                  <SelectItem value="webp">
+                    WebP (meilleure compression, support limité)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
+        {/* Message d'erreur */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTitle>Erreur</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {/* Résultats de compression */}
+        {compressedImage && (
+          <div className="mb-6 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+            <h3 className="font-medium mb-2 flex items-center gap-2 text-green-700 dark:text-green-400">
+              <Check className="h-5 w-5" />
+              Compression réussie !
+            </h3>
+            <div className="grid grid-cols-3 gap-4 text-center mb-4">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Taille originale
+                </p>
+                <p className="font-medium">{formatSize(originalSize)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Taille compressée
+                </p>
+                <p className="font-medium">{formatSize(compressedSize)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Réduction
+                </p>
+                <p className="font-medium text-green-600 dark:text-green-400">
+                  {calculateReduction()}%
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Boutons d'actions */}
+        <div className="flex flex-col gap-3 mt-6">
+          {!compressedImage ? (
+            <Button
+              onClick={compressImage}
+              disabled={isCompressing}
+              className="w-full"
+            >
+              {isCompressing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Compression en cours...
+                </>
+              ) : (
+                <>
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Compresser l&apos;image
+                </>
+              )}
+            </Button>
+          ) : (
+            <>
+              <Button onClick={handleDownload} className="w-full">
+                <Download className="mr-2 h-4 w-4" />
+                Télécharger l&apos;image compressée
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={compressImage}
+                disabled={isCompressing}
+                className="w-full"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Recompresser avec les options actuelles
+              </Button>
+            </>
+          )}
+
+          <Button variant="ghost" onClick={resetForm} className="w-full">
+            Choisir une autre image
+          </Button>
+        </div>
       </Card>
 
       {/* Section FAQ */}
@@ -495,19 +503,21 @@ export default function ImageCompressor() {
 
         <AccordionItem value="item-1">
           <AccordionTrigger>
-            Comment fonctionne la compression d'images ?
+            Comment fonctionne la compression d&apos;images ?
           </AccordionTrigger>
           <AccordionContent>
-            Notre compresseur d'images utilise des algorithmes avancés pour
+            Notre compresseur d&apos;images utilise des algorithmes avancés pour
             réduire la taille des fichiers tout en préservant la qualité
-            visuelle. Le processus implique l'optimisation de l'encodage des
-            pixels et la réduction des métadonnées inutiles. Vous pouvez ajuster
-            le niveau de qualité selon vos besoins.
+            visuelle. Le processus implique l&apos;optimisation de
+            l&apos;encodage des pixels et la réduction des métadonnées inutiles.
+            Vous pouvez ajuster le niveau de qualité selon vos besoins.
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="item-2">
-          <AccordionTrigger>Quel format d'image choisir ?</AccordionTrigger>
+          <AccordionTrigger>
+            Quel format d&apos;image choisir ?
+          </AccordionTrigger>
           <AccordionContent>
             <ul className="list-disc pl-5 space-y-2">
               <li>
@@ -520,7 +530,7 @@ export default function ImageCompressor() {
               </li>
               <li>
                 <strong>WebP</strong> : Offre une meilleure compression que JPEG
-                et PNG tout en maintenant une bonne qualité, mais n'est pas
+                et PNG tout en maintenant une bonne qualité, mais n&apos;est pas
                 supporté par tous les navigateurs et applications.
               </li>
             </ul>
@@ -543,13 +553,13 @@ export default function ImageCompressor() {
         <AccordionItem value="item-4">
           <AccordionTrigger>Pourquoi compresser mes images ?</AccordionTrigger>
           <AccordionContent>
-            La compression d'images est essentielle pour :
+            La compression d&apos;images est essentielle pour :
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Accélérer le chargement de votre site web</li>
               <li>
-                Réduire l'utilisation des données sur les appareils mobiles
+                Réduire l&apos;utilisation des données sur les appareils mobiles
               </li>
-              <li>Économiser de l'espace de stockage</li>
+              <li>Économiser de l&apos;espace de stockage</li>
               <li>Faciliter le partage par email ou messagerie</li>
               <li>
                 Améliorer le référencement (SEO) en optimisant la vitesse de
@@ -579,8 +589,8 @@ export default function ImageCompressor() {
         <div className="p-5 border rounded-lg">
           <h3 className="font-bold mb-2">Rapide et gratuit</h3>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
-            Aucune limitation de nombre d'images, aucune inscription requise,
-            100% gratuit.
+            Aucune limitation de nombre d&apos;images, aucune inscription
+            requise, 100% gratuit.
           </p>
         </div>
       </div>

@@ -160,7 +160,7 @@ export default function PdfToWordConverter() {
         {!convertedFile ? (
           <>
             {/* Zone de dépôt de fichier */}
-            <div
+            <button
               className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
               onDragOver={handleDragOver}
               onDrop={handleDrop}
@@ -186,7 +186,7 @@ export default function PdfToWordConverter() {
                   </p>
                 </div>
               </div>
-            </div>
+            </button>
 
             {/* Affichage du fichier sélectionné */}
             {file && (
@@ -294,8 +294,8 @@ export default function PdfToWordConverter() {
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
               Téléchargez votre fichier PDF, attendez que la conversion soit
-              terminée, puis téléchargez le document Word résultant. C'est aussi
-              simple que cela !
+              terminée, puis téléchargez le document Word résultant. C&apos;est
+              aussi simple que cela !
             </p>
           </div>
           <div>
@@ -303,9 +303,10 @@ export default function PdfToWordConverter() {
               La mise en forme est-elle conservée ?
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Oui, notre outil s'efforce de conserver la mise en page originale,
-              y compris les polices, les images et les tableaux. Cependant, les
-              PDF très complexes peuvent présenter de légères différences.
+              Oui, notre outil s&apos;efforce de conserver la mise en page
+              originale, y compris les polices, les images et les tableaux.
+              Cependant, les PDF très complexes peuvent présenter de légères
+              différences.
             </p>
           </div>
           <div>
