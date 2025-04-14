@@ -25,7 +25,7 @@ const categories = [
   { id: "misc", name: "Divers" },
 ];
 
-// Définir la liste des outils
+// Définir la liste des outils avec les nouveaux outils à venir
 const tools = [
   {
     id: "pdf-to-word",
@@ -130,6 +130,101 @@ const tools = [
     comingSoon: true,
     path: "/tools/file-comparator",
     icon: "🔍",
+  },
+  // Nouveaux outils à venir
+  {
+    id: "audio-enhancer",
+    name: "Améliorateur audio",
+    description:
+      "Supprimez les bruits parasites et améliorez la qualité sonore",
+    category: "misc",
+    popular: false,
+    comingSoon: true,
+    path: "/tools/audio-enhancer",
+    icon: "🎧",
+  },
+  {
+    id: "grammar-checker",
+    name: "Correcteur grammatical",
+    description:
+      "Corrigez les fautes d'orthographe et de grammaire dans vos textes",
+    category: "text",
+    popular: true,
+    comingSoon: true,
+    path: "/tools/grammar-checker",
+    icon: "✓",
+  },
+  {
+    id: "translator",
+    name: "Traducteur multilingue",
+    description: "Traduisez du texte dans plusieurs langues instantanément",
+    category: "text",
+    popular: true,
+    comingSoon: true,
+    path: "/tools/translator",
+    icon: "🌐",
+  },
+  {
+    id: "code-indenter",
+    name: "Indenteur de code",
+    description: "Formatez et indentez automatiquement votre code source",
+    category: "text",
+    popular: false,
+    comingSoon: true,
+    path: "/tools/code-indenter",
+    icon: "⌨️",
+  },
+  {
+    id: "case-converter",
+    name: "Convertisseur de casse",
+    description:
+      "Convertissez du texte entre majuscules, minuscules et autres formats",
+    category: "text",
+    popular: false,
+    comingSoon: true,
+    path: "/tools/case-converter",
+    icon: "Aa",
+  },
+  {
+    id: "character-escaper",
+    name: "Échappeur de caractères",
+    description:
+      "Échappez les caractères spéciaux pour différents langages de programmation",
+    category: "text",
+    popular: false,
+    comingSoon: true,
+    path: "/tools/character-escaper",
+    icon: "\\",
+  },
+  {
+    id: "world-clock",
+    name: "Horloge mondiale",
+    description: "Consultez l'heure actuelle dans différents fuseaux horaires",
+    category: "misc",
+    popular: false,
+    comingSoon: true,
+    path: "/tools/world-clock",
+    icon: "🕒",
+  },
+  {
+    id: "currency-converter",
+    name: "Convertisseur de monnaies",
+    description: "Convertissez entre différentes devises et cryptomonnaies",
+    category: "conversion",
+    popular: true,
+    comingSoon: true,
+    path: "/tools/currency-converter",
+    icon: "💱",
+  },
+  {
+    id: "url-shortener",
+    name: "Raccourcisseur d'URL",
+    description: "Créez des liens courts et faciles à partager",
+    category: "misc",
+    popular: false,
+    comingSoon: true,
+    path: "/tools/url-shortener",
+    icon: "🔗",
   },
 ];
 
