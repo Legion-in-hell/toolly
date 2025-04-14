@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "prismjs/themes/prism-tomorrow.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -118,5 +119,56 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Ajoutez ces styles à votre fichier globals.css */
+
+/* Améliorer l'apparence des zones de code */
+.code-highlight {
+  white-space: pre;
+  word-break: normal;
+  word-wrap: normal;
+}
+
+/* Personnaliser les scrollbars des conteneurs de code */
+pre::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-track {
+  background-color: rgba(229, 231, 235, 0.3);
+}
+
+/* Mode sombre pour les scrollbars */
+@media (prefers-color-scheme: dark) {
+  pre::-webkit-scrollbar-thumb {
+    background-color: rgba(75, 85, 99, 0.5);
+  }
+
+  pre::-webkit-scrollbar-track {
+    background-color: rgba(31, 41, 55, 0.3);
+  }
+}
+
+/* Indication visuelle que la zone de code est cliquable */
+.input-code-container {
+  cursor: text;
+  transition: background-color 0.2s ease;
+}
+
+.input-code-container:hover {
+  background-color: rgba(229, 231, 235, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .input-code-container:hover {
+    background-color: rgba(55, 65, 81, 0.5);
   }
 }

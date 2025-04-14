@@ -11,7 +11,6 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Éviter les problèmes d'hydratation
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -23,14 +22,12 @@ export default function Header() {
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Toolly
           </span>
         </Link>
 
-        {/* Menu desktop */}
         <nav className="hidden md:flex items-center gap-6">
           <Link
             href="/"
@@ -58,7 +55,6 @@ export default function Header() {
           </Link>
         </nav>
 
-        {/* Actions desktop */}
         <div className="hidden md:flex items-center gap-2">
           <Button
             variant="ghost"
@@ -74,7 +70,6 @@ export default function Header() {
           </Button>
         </div>
 
-        {/* Menu mobile */}
         <div className="md:hidden flex items-center gap-2">
           <Button
             variant="ghost"
@@ -103,7 +98,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Menu mobile déroulant */}
       {mobileMenuOpen && (
         <div className="md:hidden py-4 px-4 border-t">
           <nav className="flex flex-col gap-4">

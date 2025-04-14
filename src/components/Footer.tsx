@@ -8,7 +8,6 @@ export default function Footer() {
     <footer className="border-t mt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-8">
-          {/* Section Logo et Description - Colonne 1 */}
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -21,10 +20,8 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Colonne vide 2 pour espacement */}
           <div className="hidden md:block md:col-span-1"></div>
 
-          {/* Section Outils - Colonne 3 */}
           <div className="md:col-span-1">
             <h3 className="font-medium mb-3">Me retrouver</h3>
             <ul className="space-y-2 text-sm">
@@ -63,10 +60,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Colonne vide 4 pour espacement */}
           <div className="hidden md:block md:col-span-1"></div>
 
-          {/* Section Légal - Colonne 5 */}
           <div className="md:col-span-1">
             <h3 className="font-medium mb-3">Légal</h3>
             <ul className="space-y-2 text-sm">
@@ -89,11 +84,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Colonne vide 6 pour espacement */}
           <div className="hidden md:block md:col-span-1"></div>
         </div>
 
-        {/* Copyright */}
         <div className="pt-8 mt-8 border-t text-sm text-center text-gray-600 dark:text-gray-300">
           <p>© {currentYear} Toolly. Tous droits réservés.</p>
         </div>
