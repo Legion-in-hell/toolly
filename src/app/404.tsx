@@ -39,13 +39,11 @@ export default function NotFoundPage() {
   ];
 
   useEffect(() => {
-    // Choisir un conseil aléatoire
     setRandomTip(funnyTips[Math.floor(Math.random() * funnyTips.length)]);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Rediriger vers la recherche
     if (searchQuery.trim()) {
       window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
     }
@@ -53,7 +51,6 @@ export default function NotFoundPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* Fil d'Ariane */}
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -68,7 +65,6 @@ export default function NotFoundPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* En-tête de la page */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Page non trouvée</h1>
         <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -119,7 +115,6 @@ export default function NotFoundPage() {
           </div>
         </div>
 
-        {/* Recherche */}
         <div className="border rounded-lg p-6 mb-6">
           <h3 className="font-medium mb-4 flex items-center gap-2">
             <Search className="h-4 w-4" />
@@ -141,7 +136,6 @@ export default function NotFoundPage() {
           </form>
         </div>
 
-        {/* Suggestions */}
         <div className="mb-6">
           <h3 className="font-medium mb-4">
             Vous pourriez être intéressé par :
@@ -180,7 +174,6 @@ export default function NotFoundPage() {
         </div>
       </Card>
 
-      {/* Section FAQ */}
       <Accordion type="single" collapsible className="mb-8">
         <h2 className="text-2xl font-bold mb-6">Questions fréquentes</h2>
 
@@ -237,7 +230,6 @@ export default function NotFoundPage() {
         </AccordionItem>
       </Accordion>
 
-      {/* Section Informations */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="p-5 border rounded-lg">
           <h3 className="font-bold mb-2">Besoin d&apos;aide ?</h3>

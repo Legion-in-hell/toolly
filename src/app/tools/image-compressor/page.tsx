@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/alt-text */
-// app/tools/image-compressor/page.tsx
+
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -39,7 +39,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-// Types pour les formats d'image
 type ImageFormat = "jpeg" | "png" | "webp";
 
 export default function ImageCompressor() {
@@ -62,7 +61,6 @@ export default function ImageCompressor() {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
 
-      // Vérifier si le fichier est une image
       if (!selectedFile.type.startsWith("image/")) {
         setError(
           "Veuillez sélectionner une image valide (JPEG, PNG, GIF, etc.)."
@@ -71,7 +69,6 @@ export default function ImageCompressor() {
         return;
       }
 
-      // Vérifier la taille du fichier (max 15 MB)
       if (selectedFile.size > 15 * 1024 * 1024) {
         setError("La taille de l'image ne doit pas dépasser 15 Mo.");
         setFile(null);
@@ -81,7 +78,6 @@ export default function ImageCompressor() {
       setFile(selectedFile);
       setOriginalSize(selectedFile.size);
 
-      // Créer l'aperçu de l'image originale
       const reader = new FileReader();
       reader.onload = (e) => {
         setOriginalPreview(e.target?.result as string);
@@ -106,7 +102,6 @@ export default function ImageCompressor() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
 
-      // Vérifier si le fichier est une image
       if (!droppedFile.type.startsWith("image/")) {
         setError(
           "Veuillez sélectionner une image valide (JPEG, PNG, GIF, etc.)."
@@ -114,7 +109,6 @@ export default function ImageCompressor() {
         return;
       }
 
-      // Vérifier la taille du fichier (max 15 MB)
       if (droppedFile.size > 15 * 1024 * 1024) {
         setError("La taille de l'image ne doit pas dépasser 15 Mo.");
         return;
@@ -123,7 +117,6 @@ export default function ImageCompressor() {
       setFile(droppedFile);
       setOriginalSize(droppedFile.size);
 
-      // Créer l'aperçu de l'image originale
       const reader = new FileReader();
       reader.onload = (e) => {
         setOriginalPreview(e.target?.result as string);
@@ -138,21 +131,17 @@ export default function ImageCompressor() {
     setIsCompressing(true);
     setError(null);
 
-    // Créer un élément image pour charger l'image originale
     const img = document.createElement("img");
     img.onload = () => {
-      // Créer un canvas pour dessiner et compresser l'image
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
       canvas.width = img.width;
       canvas.height = img.height;
 
-      // Dessiner l'image sur le canvas
       if (ctx) {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // Convertir le canvas en base64 avec la qualité spécifiée
         try {
           const compressedDataUrl = canvas.toDataURL(
             `image/${format}`,
@@ -160,7 +149,6 @@ export default function ImageCompressor() {
           );
           setCompressedImage(compressedDataUrl);
 
-          // Calculer la taille approximative de l'image compressée
           const base64 = compressedDataUrl.split(",")[1];
           const approximateSize = Math.round((base64.length * 3) / 4);
           setCompressedSize(approximateSize);
@@ -188,7 +176,6 @@ export default function ImageCompressor() {
   const handleDownload = () => {
     if (!compressedImage) return;
 
-    // Créer un lien de téléchargement pour l'image compressée
     const link = document.createElement("a");
     link.href = compressedImage;
     link.download = `compressed_${
@@ -213,7 +200,6 @@ export default function ImageCompressor() {
     }
   };
 
-  // Formater la taille en KB ou MB
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     if (bytes < 1024 * 1024) {
@@ -222,7 +208,6 @@ export default function ImageCompressor() {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
-  // Calculer le pourcentage de réduction de taille
   const calculateReduction = () => {
     if (originalSize === 0 || compressedSize === 0) return 0;
     return Math.round((1 - compressedSize / originalSize) * 100);
@@ -230,7 +215,6 @@ export default function ImageCompressor() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* Fil d'Ariane */}
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -253,7 +237,6 @@ export default function ImageCompressor() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* En-tête de l'outil */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Compresseur d&apos;images</h1>
         <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -263,7 +246,6 @@ export default function ImageCompressor() {
       </div>
 
       <Card className="p-6 mb-8 border-2">
-        {/* Zone de dépôt de fichier (affichée seulement si aucune image n'est sélectionnée) */}
         {!file && (
           <button
             type="button"
@@ -300,12 +282,9 @@ export default function ImageCompressor() {
             </div>
           </button>
         )}
-        {/* Affichage de l'image et options de compression */}
         {file && originalPreview && (
           <div>
-            {/* Aperçu des images (originale/compressée) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Image originale */}
               <div className="border rounded-lg p-4">
                 <h3 className="font-medium mb-2 flex items-center gap-2">
                   <Image className="h-4 w-4" />
@@ -320,7 +299,6 @@ export default function ImageCompressor() {
                 </div>
               </div>
 
-              {/* Image compressée (ou placeholder) */}
               <div className="border rounded-lg p-4">
                 <h3 className="font-medium mb-2 flex items-center gap-2">
                   <Image className="h-4 w-4" />
@@ -348,7 +326,6 @@ export default function ImageCompressor() {
               </div>
             </div>
 
-            {/* Options de compression */}
             <div className="mb-6 border rounded-lg p-4">
               <h3 className="font-medium mb-4 flex items-center gap-2">
                 <Settings2 className="h-4 w-4" />
@@ -384,7 +361,6 @@ export default function ImageCompressor() {
               />
             </div>
 
-            {/* Format */}
             <div>
               <label
                 htmlFor="format"
@@ -414,14 +390,12 @@ export default function ImageCompressor() {
             </div>
           </div>
         )}
-        {/* Message d'erreur */}
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertTitle>Erreur</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {/* Résultats de compression */}
         {compressedImage && (
           <div className="mb-6 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
             <h3 className="font-medium mb-2 flex items-center gap-2 text-green-700 dark:text-green-400">
@@ -452,7 +426,6 @@ export default function ImageCompressor() {
             </div>
           </div>
         )}
-        {/* Boutons d'actions */}
         <div className="flex flex-col gap-3 mt-6">
           {!compressedImage ? (
             <Button
@@ -497,7 +470,6 @@ export default function ImageCompressor() {
         </div>
       </Card>
 
-      {/* Section FAQ */}
       <Accordion type="single" collapsible className="mb-8">
         <h2 className="text-2xl font-bold mb-6">Questions fréquentes</h2>
 
@@ -570,7 +542,6 @@ export default function ImageCompressor() {
         </AccordionItem>
       </Accordion>
 
-      {/* Section Informations */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="p-5 border rounded-lg">
           <h3 className="font-bold mb-2">Compression locale</h3>

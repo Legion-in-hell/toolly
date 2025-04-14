@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Types pour les modes d'échappement
 type EscapeMode = "html" | "javascript" | "json" | "csv" | "url" | "xml";
 
 export default function CharacterEscaper() {
@@ -35,7 +34,6 @@ export default function CharacterEscaper() {
   const [escapeMode, setEscapeMode] = useState<EscapeMode>("html");
   const [copied, setCopied] = useState(false);
 
-  // Fonction pour échapper les caractères selon le mode choisi
   const escapeText = () => {
     if (!inputText) {
       setOutputText("");
@@ -70,7 +68,6 @@ export default function CharacterEscaper() {
     setOutputText(result);
   };
 
-  // Fonction pour échapper les caractères HTML
   const escapeHTML = (text: string): string => {
     return text
       .replace(/&/g, "&amp;")
@@ -80,7 +77,6 @@ export default function CharacterEscaper() {
       .replace(/'/g, "&#39;");
   };
 
-  // Fonction pour échapper les caractères JavaScript
   const escapeJavaScript = (text: string): string => {
     return text
       .replace(/\\/g, "\\\\")
@@ -93,25 +89,18 @@ export default function CharacterEscaper() {
       .replace(/\f/g, "\\f");
   };
 
-  // Fonction pour échapper les caractères JSON
   const escapeJSON = (text: string): string => {
-    // JSON.stringify fait le gros du travail pour nous, mais il ajoute des guillemets
     const escaped = JSON.stringify(text);
-    // On enlève les guillemets du début et de la fin
     return escaped.substring(1, escaped.length - 1);
   };
 
-  // Fonction pour échapper les caractères CSV
   const escapeCSV = (text: string): string => {
-    // Si le texte contient des virgules, des guillemets, ou des sauts de ligne,
-    // on l'entoure de guillemets et on double les guillemets à l'intérieur
     if (/[",\n\r]/.test(text)) {
       return '"' + text.replace(/"/g, '""') + '"';
     }
     return text;
   };
 
-  // Fonction pour échapper les caractères XML
   const escapeXML = (text: string): string => {
     return text
       .replace(/&/g, "&amp;")
@@ -121,26 +110,21 @@ export default function CharacterEscaper() {
       .replace(/'/g, "&apos;");
   };
 
-  // Effet pour exécuter l'échappement automatiquement
-  // à chaque fois que le texte d'entrée ou le mode d'échappement change
   useEffect(() => {
     escapeText();
   }, [inputText, escapeMode]);
 
-  // Fonction pour copier le texte transformé
   const copyToClipboard = () => {
     navigator.clipboard.writeText(outputText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Fonction pour échanger les textes d'entrée et de sortie
   const swapTexts = () => {
     setInputText(outputText);
     setOutputText(inputText);
   };
 
-  // Fonction pour effacer les champs
   const clearFields = () => {
     setInputText("");
     setOutputText("");
@@ -148,7 +132,6 @@ export default function CharacterEscaper() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* Fil d'Ariane */}
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -171,7 +154,6 @@ export default function CharacterEscaper() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* En-tête de l'outil */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">
           Échappeur de caractères spéciaux
@@ -184,7 +166,6 @@ export default function CharacterEscaper() {
       </div>
 
       <Card className="p-6 mb-8 border-2">
-        {/* Zone de saisie du texte */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <label htmlFor="inputText" className="font-medium">
@@ -208,7 +189,6 @@ export default function CharacterEscaper() {
           />
         </div>
 
-        {/* Options d'échappement */}
         <div className="mb-6">
           <label htmlFor="escapeMode" className="block font-medium mb-2">
             Format d&#39;échappement
@@ -238,7 +218,6 @@ export default function CharacterEscaper() {
           </div>
         </div>
 
-        {/* Bouton d'action */}
         <div className="flex flex-wrap gap-3 mb-6">
           <Button
             variant="outline"
@@ -251,7 +230,6 @@ export default function CharacterEscaper() {
           </Button>
         </div>
 
-        {/* Zone de résultat */}
         <div className="mb-2">
           <div className="flex justify-between items-center mb-2">
             <label htmlFor="outputText" className="font-medium">
@@ -286,7 +264,6 @@ export default function CharacterEscaper() {
         </div>
       </Card>
 
-      {/* Section FAQ */}
       <Accordion type="single" collapsible className="mb-8">
         <h2 className="text-2xl font-bold mb-6">Questions fréquentes</h2>
 
@@ -401,7 +378,6 @@ export default function CharacterEscaper() {
         </AccordionItem>
       </Accordion>
 
-      {/* Section Exemples d'utilisation */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6">Exemples d&#39;utilisation</h2>
 
@@ -418,7 +394,6 @@ export default function CharacterEscaper() {
         </div>
       </div>
 
-      {/* Section Informations */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="p-5 border rounded-lg">
           <h3 className="font-bold mb-2">Traitement local</h3>

@@ -34,14 +34,12 @@ export default function PdfToWordConverter() {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
 
-      // Vérifier si le fichier est un PDF
       if (selectedFile.type !== "application/pdf") {
         setError("Veuillez sélectionner un fichier PDF valide.");
         setFile(null);
         return;
       }
 
-      // Vérifier la taille du fichier (max 10 MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
         setError("La taille du fichier ne doit pas dépasser 10 Mo.");
         setFile(null);
@@ -67,13 +65,11 @@ export default function PdfToWordConverter() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
 
-      // Vérifier si le fichier est un PDF
       if (droppedFile.type !== "application/pdf") {
         setError("Veuillez sélectionner un fichier PDF valide.");
         return;
       }
 
-      // Vérifier la taille du fichier (max 10 MB)
       if (droppedFile.size > 10 * 1024 * 1024) {
         setError("La taille du fichier ne doit pas dépasser 10 Mo.");
         return;
@@ -90,13 +86,11 @@ export default function PdfToWordConverter() {
     setError(null);
 
     try {
-      // Dans une application réelle, vous enverriez le fichier à votre API
-      // et recevriez le document Word converti
-      // Ici, nous simulons le processus
+      // Simule une requête de conversion (dans une app réelle, cela irait vers une API)
+      // TODO: Remplacez ceci par la logique de conversion réelle
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Simule un fichier converti (dans une app réelle, cela viendrait de l'API)
       const mockConvertedFile = URL.createObjectURL(
         new Blob(["Contenu simulé"], {
           type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -124,7 +118,6 @@ export default function PdfToWordConverter() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* Fil d'Ariane */}
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -147,7 +140,6 @@ export default function PdfToWordConverter() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* En-tête de l'outil */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Convertisseur PDF vers Word</h1>
         <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -159,7 +151,6 @@ export default function PdfToWordConverter() {
       <Card className="p-6 mb-8 border-2">
         {!convertedFile ? (
           <>
-            {/* Zone de dépôt de fichier */}
             <button
               className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
               onDragOver={handleDragOver}
@@ -188,7 +179,6 @@ export default function PdfToWordConverter() {
               </div>
             </button>
 
-            {/* Affichage du fichier sélectionné */}
             {file && (
               <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -208,7 +198,6 @@ export default function PdfToWordConverter() {
               </div>
             )}
 
-            {/* Message d'erreur */}
             {error && (
               <Alert variant="destructive" className="mt-6">
                 <AlertTitle>Erreur</AlertTitle>
@@ -216,7 +205,6 @@ export default function PdfToWordConverter() {
               </Alert>
             )}
 
-            {/* Bouton de conversion */}
             <div className="mt-6 flex justify-center">
               <Button
                 onClick={convertToWord}
@@ -259,7 +247,6 @@ export default function PdfToWordConverter() {
         )}
       </Card>
 
-      {/* Section Informations */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="p-5 border rounded-lg">
           <h3 className="font-bold mb-2">Conversion précise</h3>
@@ -284,7 +271,6 @@ export default function PdfToWordConverter() {
         </div>
       </div>
 
-      {/* FAQ */}
       <div className="mb-10">
         <h2 className="text-2xl font-bold mb-6">Foire aux questions</h2>
         <div className="space-y-4">

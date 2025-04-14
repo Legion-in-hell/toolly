@@ -14,7 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Définir les catégories d'outils
 const categories = [
   { id: "all", name: "Tous les outils" },
   { id: "conversion", name: "Conversion" },
@@ -25,7 +24,6 @@ const categories = [
   { id: "misc", name: "Divers" },
 ];
 
-// Définir la liste des outils avec les nouveaux outils à venir
 const tools = [
   {
     id: "pdf-to-word",
@@ -169,7 +167,7 @@ const tools = [
     description: "Formatez et indentez automatiquement votre code source",
     category: "text",
     popular: false,
-    comingSoon: true,
+    comingSoon: false,
     path: "/tools/code-indenter",
     icon: "⌨️",
   },
@@ -201,7 +199,7 @@ const tools = [
     description: "Consultez l'heure actuelle dans différents fuseaux horaires",
     category: "misc",
     popular: false,
-    comingSoon: true,
+    comingSoon: false,
     path: "/tools/world-clock",
     icon: "🕒",
   },
@@ -221,7 +219,7 @@ const tools = [
     description: "Créez des liens courts et faciles à partager",
     category: "misc",
     popular: false,
-    comingSoon: true,
+    comingSoon: false,
     path: "/tools/url-shortener",
     icon: "🔗",
   },
@@ -231,7 +229,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
 
-  // Filtrer les outils en fonction de la recherche et de la catégorie
   const filteredTools = tools.filter((tool) => {
     const matchesSearch =
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -243,7 +240,6 @@ export default function Home() {
 
   return (
     <main className="container mx-auto px-4 py-10 max-w-7xl">
-      {/* Hero Section */}
       <section className="text-center mb-16">
         <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           Toolly
@@ -253,7 +249,6 @@ export default function Home() {
           et sans installation
         </p>
 
-        {/* Barre de recherche */}
         <div className="relative max-w-md mx-auto">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-gray-400" />
@@ -268,7 +263,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section Outils Populaires */}
       <section className="mb-16">
         <h2 className="text-2xl font-bold mb-6">Outils Populaires</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -292,7 +286,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section Tous les Outils */}
       <section>
         <h2 className="text-2xl font-bold mb-6">Tous nos outils</h2>
 
