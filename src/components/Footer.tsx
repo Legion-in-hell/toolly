@@ -7,8 +7,8 @@ export default function Footer() {
   return (
     <footer className="border-t mt-20">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Section Logo et Description */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-8">
+          {/* Section Logo et Description - Colonne 1 */}
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -21,78 +21,53 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Section Outils */}
-          <div>
-            <h3 className="font-medium mb-3">Outils</h3>
+          {/* Colonne vide 2 pour espacement */}
+          <div className="hidden md:block md:col-span-1"></div>
+
+          {/* Section Outils - Colonne 3 */}
+          <div className="md:col-span-1">
+            <h3 className="font-medium mb-3">Me retrouver</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/tools/conversion"
+                  href="https://github.com/Legion-in-hell"
                   className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Conversion
+                  Mon Github
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/tools/compression"
+                  href="https://www.linkedin.com/in/rouff"
                   className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Compression
+                  Mon LinkedIn
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/tools/privacy"
+                  href="https://www.coredev.fr"
                   className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Confidentialité
+                  Mon Portfolio
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/tools"
+                  href="https://www.malt.fr/profile/corentinrouff1"
                   className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Voir tous les outils
+                  Mon profil Malt
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Section Entreprise */}
-          <div>
-            <h3 className="font-medium mb-3">Entreprise</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/about"
-                  className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  À propos
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/blog"
-                  className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Colonne vide 4 pour espacement */}
+          <div className="hidden md:block md:col-span-1"></div>
 
-          {/* Section Légal */}
-          <div>
+          {/* Section Légal - Colonne 5 */}
+          <div className="md:col-span-1">
             <h3 className="font-medium mb-3">Légal</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -113,6 +88,9 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+
+          {/* Colonne vide 6 pour espacement */}
+          <div className="hidden md:block md:col-span-1"></div>
         </div>
 
         {/* Copyright */}
