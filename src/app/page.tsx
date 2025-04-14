@@ -131,7 +131,6 @@ const tools = [
     path: "/tools/file-comparator",
     icon: "🔍",
   },
-  // Nouveaux outils à venir
   {
     id: "audio-enhancer",
     name: "Améliorateur audio",
@@ -181,8 +180,8 @@ const tools = [
       "Convertissez du texte entre majuscules, minuscules et autres formats",
     category: "text",
     popular: false,
-    comingSoon: true,
-    path: "/tools/case-converter",
+    comingSoon: false,
+    path: "/tools/casse",
     icon: "Aa",
   },
   {
@@ -192,7 +191,7 @@ const tools = [
       "Échappez les caractères spéciaux pour différents langages de programmation",
     category: "text",
     popular: false,
-    comingSoon: true,
+    comingSoon: false,
     path: "/tools/character-escaper",
     icon: "\\",
   },
