@@ -31,7 +31,8 @@ const tools = [
     description: "Convertissez vos fichiers PDF en documents Word éditables",
     category: "conversion",
     popular: true,
-    comingSoon: true,
+    comingSoon: false,
+    demo: true,
     path: "/tools/pdf-to-word",
     icon: "📄",
   },
@@ -43,6 +44,7 @@ const tools = [
     category: "compression",
     popular: true,
     comingSoon: false,
+    demo: false,
     path: "/tools/image-compressor",
     icon: "🖼️",
   },
@@ -54,6 +56,7 @@ const tools = [
     category: "privacy",
     popular: false,
     comingSoon: true,
+    demo: false,
     path: "/tools/metadata-cleaner",
     icon: "🔒",
   },
@@ -64,6 +67,7 @@ const tools = [
     category: "text",
     popular: false,
     comingSoon: true,
+    demo: false,
     path: "/tools/text-simplifier",
     icon: "📝",
   },
@@ -74,6 +78,7 @@ const tools = [
     category: "extraction",
     popular: true,
     comingSoon: true,
+    demo: false,
     path: "/tools/table-extractor",
     icon: "📊",
   },
@@ -84,6 +89,7 @@ const tools = [
     category: "misc",
     popular: false,
     comingSoon: true,
+    demo: false,
     path: "/tools/file-merger",
     icon: "🔄",
   },
@@ -95,6 +101,7 @@ const tools = [
     category: "conversion",
     popular: false,
     comingSoon: true,
+    demo: false,
     path: "/tools/audio-converter",
     icon: "🎵",
   },
@@ -106,6 +113,7 @@ const tools = [
     category: "privacy",
     popular: false,
     comingSoon: true,
+    demo: false,
     path: "/tools/doc-anonymizer",
     icon: "👤",
   },
@@ -116,6 +124,7 @@ const tools = [
     category: "misc",
     popular: true,
     comingSoon: false,
+    demo: true,
     path: "/tools/qr-generator",
     icon: "📱",
   },
@@ -126,6 +135,7 @@ const tools = [
     category: "misc",
     popular: false,
     comingSoon: true,
+    demo: false,
     path: "/tools/file-comparator",
     icon: "🔍",
   },
@@ -137,6 +147,7 @@ const tools = [
     category: "misc",
     popular: false,
     comingSoon: true,
+    demo: false,
     path: "/tools/audio-enhancer",
     icon: "🎧",
   },
@@ -148,6 +159,7 @@ const tools = [
     category: "text",
     popular: true,
     comingSoon: true,
+    demo: false,
     path: "/tools/grammar-checker",
     icon: "✓",
   },
@@ -158,6 +170,7 @@ const tools = [
     category: "text",
     popular: true,
     comingSoon: true,
+    demo: false,
     path: "/tools/translator",
     icon: "🌐",
   },
@@ -168,6 +181,7 @@ const tools = [
     category: "text",
     popular: false,
     comingSoon: false,
+    demo: false,
     path: "/tools/code-indenter",
     icon: "⌨️",
   },
@@ -179,6 +193,7 @@ const tools = [
     category: "text",
     popular: false,
     comingSoon: false,
+    demo: false,
     path: "/tools/casse",
     icon: "Aa",
   },
@@ -190,6 +205,7 @@ const tools = [
     category: "text",
     popular: false,
     comingSoon: false,
+    demo: false,
     path: "/tools/character-escaper",
     icon: "\\",
   },
@@ -200,6 +216,7 @@ const tools = [
     category: "misc",
     popular: false,
     comingSoon: false,
+    demo: false,
     path: "/tools/world-clock",
     icon: "🕒",
   },
@@ -210,6 +227,7 @@ const tools = [
     category: "conversion",
     popular: true,
     comingSoon: true,
+    demo: false,
     path: "/tools/currency-converter",
     icon: "💱",
   },
@@ -220,6 +238,7 @@ const tools = [
     category: "misc",
     popular: false,
     comingSoon: false,
+    demo: true,
     path: "/tools/url-shortener",
     icon: "🔗",
   },
@@ -272,9 +291,19 @@ export default function Home() {
               <Link href={tool.path} key={tool.id}>
                 <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200 dark:hover:border-blue-800">
                   <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{tool.icon}</span>
-                      <CardTitle>{tool.name}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{tool.icon}</span>
+                        <CardTitle>{tool.name}</CardTitle>
+                      </div>
+                      {tool.demo && (
+                        <Badge
+                          variant="outline"
+                          className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                        >
+                          Démo
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -320,14 +349,24 @@ export default function Home() {
                         <span className="text-2xl">{tool.icon}</span>
                         <CardTitle className="text-lg">{tool.name}</CardTitle>
                       </div>
-                      {tool.comingSoon && (
-                        <Badge
-                          variant="outline"
-                          className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                        >
-                          Bientôt
-                        </Badge>
-                      )}
+                      <div className="flex gap-2">
+                        {tool.comingSoon && (
+                          <Badge
+                            variant="outline"
+                            className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                          >
+                            Bientôt
+                          </Badge>
+                        )}
+                        {tool.demo && !tool.comingSoon && (
+                          <Badge
+                            variant="outline"
+                            className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                          >
+                            Démo
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
