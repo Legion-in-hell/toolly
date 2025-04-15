@@ -248,7 +248,7 @@ export default function WorldClock() {
 
   const formatTime = (timezone) => {
     try {
-      const options = {
+      const options: Intl.DateTimeFormatOptions = {
         hour: "2-digit",
         minute: "2-digit",
         ...(showSeconds && { second: "2-digit" }),
@@ -265,7 +265,7 @@ export default function WorldClock() {
 
   const formatDate = (timezone) => {
     try {
-      const options = {
+      const options: Intl.DateTimeFormatOptions = {
         weekday: "long",
         year: "numeric",
         month: "long",
@@ -333,10 +333,10 @@ export default function WorldClock() {
     try {
       const localHour = new Date().getHours() + new Date().getMinutes() / 60;
 
-      const targetOptions = {
+      const targetOptions: Intl.DateTimeFormatOptions = {
         timeZone: timezone,
-        hour: "numeric",
-        minute: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
         hour12: false,
       };
       const targetTimeStr = new Intl.DateTimeFormat(

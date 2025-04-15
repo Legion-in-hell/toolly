@@ -43,7 +43,16 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
-const generateQRCode = (text: string, options: Record<string, any> = {}) => {
+interface QRCodeOptions {
+  size?: number;
+  errorCorrection?: "L" | "M" | "Q" | "H";
+  backgroundColor?: string;
+  foregroundColor?: string;
+  logo?: string | null;
+  margin?: number;
+}
+
+const generateQRCode = (text: string, options: QRCodeOptions = {}) => {
   const defaultOptions = {
     size: 200,
     errorCorrection: "M",
@@ -57,7 +66,7 @@ const generateQRCode = (text: string, options: Record<string, any> = {}) => {
 
   return new Promise<{
     dataURL: string;
-    options: Record<string, any>;
+    options: QRCodeOptions;
     text: string;
     type: string;
   }>((resolve) => {
@@ -100,7 +109,14 @@ const generateQRCode = (text: string, options: Record<string, any> = {}) => {
             }
           </svg>
         `)}`,
-        options: mergedOptions,
+        options: {
+          ...mergedOptions,
+          errorCorrection: mergedOptions.errorCorrection as
+            | "L"
+            | "M"
+            | "Q"
+            | "H",
+        },
         text,
         type: "svg",
       });
@@ -128,9 +144,11 @@ export default function QRGenerator() {
   const [qrType, setQrType] = useState("url");
   const [text, setText] = useState("https://exemple.com");
   const [size, setSize] = useState(200);
-  const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
+  const [backgroundColor] = useState("#FFFFFF");
   const [foregroundColor, setForegroundColor] = useState("#000000");
-  const [errorCorrection, setErrorCorrection] = useState("M");
+  const [errorCorrection, setErrorCorrection] = useState<"L" | "M" | "Q" | "H">(
+    "M"
+  );
   const [withLogo, setWithLogo] = useState(false);
   const [margin, setMargin] = useState(4);
   const [generatedQR, setGeneratedQR] = useState(null);
@@ -873,7 +891,11 @@ END:VEVENT`;
                               </Label>
                               <Select
                                 value={errorCorrection}
-                                onValueChange={setErrorCorrection}
+                                onValueChange={(value) =>
+                                  setErrorCorrection(
+                                    value as "M" | "L" | "Q" | "H"
+                                  )
+                                }
                               >
                                 <SelectTrigger
                                   id="error-correction"

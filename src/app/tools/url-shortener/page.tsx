@@ -73,7 +73,6 @@ export default function UrlShortener() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentUrl, setCurrentUrl] = useState(null);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("new");
 
   useEffect(() => {
@@ -150,10 +149,7 @@ export default function UrlShortener() {
 
   const copyToClipboard = (url) => {
     navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
-
   const deleteUrl = (shortCode) => {
     const updatedUrls = shortenedUrls.filter(
       (url) => url.shortCode !== shortCode
@@ -562,7 +558,4 @@ export default function UrlShortener() {
       </div>
     </div>
   );
-}
-function setCopied(arg0: boolean) {
-  throw new Error("Function not implemented.");
 }
