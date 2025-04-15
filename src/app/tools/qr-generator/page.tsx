@@ -1,23 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ChevronRight,
-  Copy,
-  Check,
-  Download,
-  Settings,
-  QrCode,
   Link as LinkIcon,
-  Image,
   Phone,
   Mail,
   MapPin,
   Wifi,
   Info,
-  ChevronDown,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Breadcrumb,
@@ -41,37 +33,16 @@ import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Calendar } from "lucide-react";
 
-// Simulation de la génération de QR Code avec une bibliothèque fictive
-// Dans une implémentation réelle, vous utiliseriez une bibliothèque comme qrcode.js ou qrcode-generator
 const generateQRCode = (text, options = {}) => {
-  // Cette fonction simule la génération d'un QR code
-  // Dans une implémentation réelle, elle renverrait une URL de données ou un élément canvas
-
   const defaultOptions = {
     size: 200,
     errorCorrection: "M",
@@ -83,11 +54,8 @@ const generateQRCode = (text, options = {}) => {
 
   const mergedOptions = { ...defaultOptions, ...options };
 
-  // Simuler un délai de génération
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Dans une implémentation réelle, ce serait le QR code généré
-      // Pour la démonstration, nous renvoyons simplement un objet avec les paramètres
       resolve({
         dataURL: `data:image/svg+xml;base64,${btoa(`
           <svg width="${mergedOptions.size}" height="${
@@ -138,7 +106,6 @@ const generateQRCode = (text, options = {}) => {
   });
 };
 
-// Types de contenu QR prédéfinis
 const qrTypes = [
   { id: "url", name: "URL / Site web", icon: <LinkIcon className="h-4 w-4" /> },
   { id: "text", name: "Texte libre", icon: <Info className="h-4 w-4" /> },
@@ -169,7 +136,6 @@ export default function QRGenerator() {
   const [activeTab, setActiveTab] = useState("content");
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState([]);
-  const [showCustomColors, setShowCustomColors] = useState(false);
 
   // Champs spécifiques aux types de QR code
   const [email, setEmail] = useState({ address: "", subject: "", body: "" });
@@ -199,8 +165,6 @@ export default function QRGenerator() {
     endDate: "",
     description: "",
   });
-
-  const canvasRef = useRef(null);
 
   // Effet pour charger l'historique depuis le localStorage
   useEffect(() => {
@@ -352,12 +316,8 @@ END:VEVENT`;
     }
   };
 
-  // Fonction pour télécharger le QR code
   const downloadQRCode = (format = "png") => {
     if (!generatedQR) return;
-
-    // Dans une implémentation réelle, vous convertiriez le SVG en PNG/autre format si nécessaire
-    // Pour la simulation, nous utiliserons directement le SVG
 
     const link = document.createElement("a");
     link.href = generatedQR.dataURL;
@@ -367,13 +327,11 @@ END:VEVENT`;
     document.body.removeChild(link);
   };
 
-  // Fonction pour nettoyer l'historique
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem("qrCodeHistory");
   };
 
-  // Rendu du formulaire en fonction du type de QR code
   const renderForm = () => {
     switch (qrType) {
       case "url":
@@ -389,13 +347,12 @@ END:VEVENT`;
                 className="mt-1"
               />
             </div>
-            {/* Section FAQ */}
             <Accordion type="single" collapsible className="mb-8">
               <h2 className="text-2xl font-bold mb-6">Questions fréquentes</h2>
 
               <AccordionItem value="item-1">
                 <AccordionTrigger>
-                  Qu'est-ce qu'un QR code et comment l'utiliser ?
+                  Qu&#39;est-ce qu&#39;un QR code et comment l&#39;utiliser ?
                 </AccordionTrigger>
                 <AccordionContent>
                   <p>
@@ -406,15 +363,15 @@ END:VEVENT`;
                   <p className="mt-2">Pour utiliser un QR code :</p>
                   <ol className="list-decimal pl-5 mt-2 space-y-1">
                     <li>
-                      Ouvrez l'appareil photo de votre smartphone ou une
+                      Ouvrez l&#39;appareil photo de votre smartphone ou une
                       application de scan de QR code
                     </li>
                     <li>
                       Placez votre appareil devant le QR code pour le scanner
                     </li>
                     <li>
-                      Suivez le lien ou affichez l'information contenue dans le
-                      QR code
+                      Suivez le lien ou affichez l&#39;information contenue dans
+                      le QR code
                     </li>
                   </ol>
                   <p className="mt-2">
@@ -427,13 +384,13 @@ END:VEVENT`;
               <AccordionItem value="item-2">
                 <AccordionTrigger>
                   Quelles sont les différences entre les niveaux de correction
-                  d'erreur ?
+                  d&#39;erreur ?
                 </AccordionTrigger>
                 <AccordionContent>
                   <p>
-                    Le niveau de correction d'erreur détermine la capacité du QR
-                    code à rester lisible même s'il est partiellement endommagé
-                    ou obstrué.
+                    Le niveau de correction d&#39;erreur détermine la capacité
+                    du QR code à rester lisible même s&#39;il est partiellement
+                    endommagé ou obstrué.
                   </p>
                   <ul className="list-disc pl-5 mt-2 space-y-1">
                     <li>
@@ -458,10 +415,10 @@ END:VEVENT`;
                     </li>
                   </ul>
                   <p className="mt-2">
-                    Si vous prévoyez d'imprimer votre QR code sur des supports
-                    qui pourraient être rayés ou salis, ou si vous ajoutez un
-                    logo au centre, optez pour un niveau de correction plus
-                    élevé (Q ou H).
+                    Si vous prévoyez d&#39;imprimer votre QR code sur des
+                    supports qui pourraient être rayés ou salis, ou si vous
+                    ajoutez un logo au centre, optez pour un niveau de
+                    correction plus élevé (Q ou H).
                   </p>
                 </AccordionContent>
               </AccordionItem>
@@ -475,23 +432,23 @@ END:VEVENT`;
                   <ul className="list-disc pl-5 mt-2 space-y-1">
                     <li>
                       <strong>SVG :</strong> Format vectoriel idéal pour
-                      l'impression, le redimensionnement sans perte de qualité
-                      et le web. Préférez le SVG si vous devez imprimer votre QR
-                      code en grand format.
+                      l&#39;impression, le redimensionnement sans perte de
+                      qualité et le web. Préférez le SVG si vous devez imprimer
+                      votre QR code en grand format.
                     </li>
                     <li>
                       <strong>PNG :</strong> Format bitmap avec transparence,
-                      parfait pour le web et les documents numériques. C'est un
-                      bon choix pour la plupart des usages courants.
+                      parfait pour le web et les documents numériques. C&#39;est
+                      un bon choix pour la plupart des usages courants.
                     </li>
                     <li>
                       <strong>JPG/JPEG :</strong> Format compressé sans
                       transparence, adapté aux photos et aux impressions où la
-                      transparence n'est pas nécessaire.
+                      transparence n&#39;est pas nécessaire.
                     </li>
                     <li>
-                      <strong>PDF :</strong> Idéal pour l'intégration dans des
-                      documents professionnels, présentations ou brochures.
+                      <strong>PDF :</strong> Idéal pour l&#39;intégration dans
+                      des documents professionnels, présentations ou brochures.
                     </li>
                   </ul>
                   <p className="mt-2">
@@ -504,7 +461,7 @@ END:VEVENT`;
 
               <AccordionItem value="item-4">
                 <AccordionTrigger>
-                  Comment personnaliser l'apparence de mon QR code ?
+                  Comment personnaliser l&#39;apparence de mon QR code ?
                 </AccordionTrigger>
                 <AccordionContent>
                   <p>
@@ -514,14 +471,14 @@ END:VEVENT`;
                   <ul className="list-disc pl-5 mt-2 space-y-1">
                     <li>
                       <strong>Couleurs :</strong> Modifiez les couleurs du
-                      premier plan (modules du QR code) et de l'arrière-plan.
-                      Pour une bonne lisibilité, maintenez un contraste élevé
-                      entre les deux couleurs.
+                      premier plan (modules du QR code) et de
+                      l&#39;arrière-plan. Pour une bonne lisibilité, maintenez
+                      un contraste élevé entre les deux couleurs.
                     </li>
                     <li>
                       <strong>Taille :</strong> Ajustez la taille du QR code
-                      selon vos besoins. Pour l'impression, assurez-vous que le
-                      code mesure au moins 2 × 2 cm pour être facilement
+                      selon vos besoins. Pour l&#39;impression, assurez-vous que
+                      le code mesure au moins 2 × 2 cm pour être facilement
                       scannable.
                     </li>
                     <li>
@@ -532,19 +489,19 @@ END:VEVENT`;
                     <li>
                       <strong>Logo :</strong> Ajoutez un logo au centre du QR
                       code. Dans ce cas, augmentez le niveau de correction
-                      d'erreur à Q ou H pour garantir que le code reste lisible.
+                      d&#39;erreur à Q ou H pour garantir que le code reste
+                      lisible.
                     </li>
                   </ul>
                   <p className="mt-2">
                     Important : Après toute personnalisation, testez toujours le
                     scan de votre QR code avec plusieurs appareils pour vous
-                    assurer qu'il fonctionne correctement.
+                    assurer qu&#39;il fonctionne correctement.
                   </p>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
 
-            {/* Section Informations */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="p-5 border rounded-lg">
                 <h3 className="font-bold mb-2">Multi-contenus</h3>
@@ -564,7 +521,7 @@ END:VEVENT`;
                 <h3 className="font-bold mb-2">Formats multiples</h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
                   Téléchargez vos QR codes en SVG, PNG, JPG ou PDF selon vos
-                  besoins d'utilisation et d'impression.
+                  besoins d&#39;utilisation et d&#39;impression.
                 </p>
               </div>
             </div>
@@ -885,7 +842,7 @@ END:VEVENT`;
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="event-title">Titre de l'événement</Label>
+              <Label htmlFor="event-title">Titre de l&#39;événement</Label>
               <Input
                 id="event-title"
                 value={event.title}
@@ -954,7 +911,6 @@ END:VEVENT`;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* Fil d'Ariane */}
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -977,13 +933,12 @@ END:VEVENT`;
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* En-tête de l'outil */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Générateur de QR codes</h1>
         <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
           Créez facilement des QR codes personnalisés pour vos sites web,
-          contacts, WiFi, et bien plus. Personnalisez l'apparence et téléchargez
-          au format de votre choix.
+          contacts, WiFi, et bien plus. Personnalisez l&#39;apparence et
+          téléchargez au format de votre choix.
         </p>
       </div>
 
@@ -1004,7 +959,6 @@ END:VEVENT`;
 
               <TabsContent value="content">
                 <div className="space-y-6">
-                  {/* Sélection du type de QR code */}
                   <div>
                     <Label className="block font-medium mb-2">
                       Type de contenu
@@ -1035,16 +989,14 @@ END:VEVENT`;
 
                   <Separator />
 
-                  {/* Formulaire spécifique au type */}
                   {renderForm()}
 
                   <Separator />
 
-                  {/* Options d'apparence */}
                   <Accordion type="single" collapsible>
                     <AccordionItem value="appearance">
                       <AccordionTrigger className="font-medium">
-                        Options d'apparence et avancées
+                        Options d&#39;apparence et avancées
                       </AccordionTrigger>
                       <AccordionContent>
                         <div className="space-y-4 pt-2">
@@ -1125,7 +1077,7 @@ END:VEVENT`;
 
                           <div>
                             <Label htmlFor="error-correction">
-                              Niveau de correction d'erreur
+                              Niveau de correction d&#39;erreur
                             </Label>
                             <Select
                               value={errorCorrection}
@@ -1174,7 +1126,7 @@ END:VEVENT`;
                             </Select>
                             <p className="text-xs text-gray-500 mt-1">
                               Un niveau plus élevé permet de scanner le QR code
-                              même s'il est partiellement endommagé.
+                              même s&#39;il est partiellement endommagé.
                             </p>
                           </div>
 

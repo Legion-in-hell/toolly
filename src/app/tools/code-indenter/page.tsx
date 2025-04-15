@@ -156,8 +156,7 @@ export default function CodeIndenter() {
       JSON.parse(code);
       return "json";
     } catch (e) {
-      if (e instanceof SyntaxError) {
-      }
+      console.error("Erreur de parsing JSON:", e);
     }
 
     if (
@@ -243,7 +242,7 @@ export default function CodeIndenter() {
       }
 
       return formatted;
-    } catch (e) {
+    } catch {
       throw new Error("Erreur lors du formatage HTML.");
     }
   };
@@ -270,8 +269,8 @@ export default function CodeIndenter() {
       }
 
       return result.trim();
-    } catch (e) {
-      throw new Error("Erreur lors du formatage CSS.");
+    } catch {
+      throw new Error("Erreur lors du formatage HTML.");
     }
   };
 
@@ -281,7 +280,9 @@ export default function CodeIndenter() {
         try {
           const obj = Function(`"use strict"; return (${code})`)();
           return JSON.stringify(obj, null, indentSize);
-        } catch (e) {}
+        } catch {
+          throw new Error("Erreur lors du formatage JavaScript.");
+        }
       }
 
       let formatted = "";
@@ -326,8 +327,8 @@ export default function CodeIndenter() {
       }
 
       return formatted;
-    } catch (e) {
-      throw new Error("Erreur lors du formatage JavaScript.");
+    } catch {
+      throw new Error("Erreur lors du formatage HTML.");
     }
   };
 
@@ -385,7 +386,7 @@ export default function CodeIndenter() {
 
       return result.trim();
     } catch (e) {
-      throw new Error("Erreur lors du formatage SQL.");
+      throw new Error("Erreur lors du formatage SQL.", e);
     }
   };
 
@@ -528,7 +529,7 @@ export default function CodeIndenter() {
 
           <div>
             <label className="block font-medium mb-2">
-              Taille de l'indentation : {indentSize} espaces
+              Taille de l&#39;indentation : {indentSize} espaces
             </label>
             <Slider
               min={1}
@@ -543,7 +544,7 @@ export default function CodeIndenter() {
 
         <p className="text-sm text-gray-500 dark:text-gray-400 italic mb-4">
           Le code est mis en forme avec coloration syntaxique pour une meilleure
-          lisibilité. Cliquez n'importe où dans la zone de code pour éditer.
+          lisibilité. Cliquez n&#39;importe où dans la zone de code pour éditer.
         </p>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -556,7 +557,7 @@ export default function CodeIndenter() {
             <div className="mb-2 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <FileCode className="h-5 w-5 text-gray-500" />
-                <span className="font-medium">Code d'entrée</span>
+                <span className="font-medium">Code d&#39;entrée</span>
               </div>
               <Button
                 variant="ghost"
@@ -706,15 +707,15 @@ export default function CodeIndenter() {
 
         <AccordionItem value="item-2">
           <AccordionTrigger>
-            Pourquoi mon code ne s'indente pas correctement ?
+            Pourquoi mon code ne s&#39;indente pas correctement ?
           </AccordionTrigger>
           <AccordionContent>
             <p>Plusieurs raisons peuvent expliquer un formatage incorrect :</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Le langage sélectionné ne correspond pas au code fourni</li>
               <li>
-                Le code contient des erreurs de syntaxe qui empêchent l'analyse
-                correcte
+                Le code contient des erreurs de syntaxe qui empêchent
+                l&#39;analyse correcte
               </li>
               <li>
                 Le code est trop complexe pour notre formateur simplifié (par
@@ -723,8 +724,8 @@ export default function CodeIndenter() {
             </ul>
             <p className="mt-2">
               Pour les meilleurs résultats avec du code complexe, essayez de
-              sélectionner manuellement le langage approprié au lieu d'utiliser
-              la détection automatique.
+              sélectionner manuellement le langage approprié au lieu
+              d&#39;utiliser la détection automatique.
             </p>
           </AccordionContent>
         </AccordionItem>
@@ -735,8 +736,8 @@ export default function CodeIndenter() {
           </AccordionTrigger>
           <AccordionContent>
             Absolument. Tout le traitement du code se fait directement dans
-            votre navigateur. Votre code n'est jamais envoyé à nos serveurs ni
-            stocké, garantissant ainsi une confidentialité totale. Cette
+            votre navigateur. Votre code n&#39;est jamais envoyé à nos serveurs
+            ni stocké, garantissant ainsi une confidentialité totale. Cette
             approche vous permet de formater en toute sécurité même du code
             propriétaire ou sensible.
           </AccordionContent>
@@ -789,7 +790,7 @@ export default function CodeIndenter() {
         <div className="p-5 border rounded-lg">
           <h3 className="font-bold mb-2">Personnalisation facile</h3>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
-            Ajustez la taille d'indentation selon vos préférences, de 1 à 8
+            Ajustez la taille d&#39;indentation selon vos préférences, de 1 à 8
             espaces.
           </p>
         </div>
