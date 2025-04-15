@@ -43,7 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
-const generateQRCode = (text, options = {}) => {
+const generateQRCode = (text: string, options: Record<string, any> = {}) => {
   const defaultOptions = {
     size: 200,
     errorCorrection: "M",
