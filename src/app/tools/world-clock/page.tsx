@@ -320,7 +320,7 @@ export default function WorldClock() {
       ).getTime();
 
       return sortOrder === "time-asc" ? hourA - hourB : hourB - hourA;
-    } catch (error) {
+    } catch {
       return 0;
     }
   });

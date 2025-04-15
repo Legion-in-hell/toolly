@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import {
   ChevronRight,
   Copy,
-  Check,
   RefreshCw,
   Link as LinkIcon,
   QrCode,
@@ -72,9 +71,9 @@ export default function UrlShortener() {
   const [useCustomAlias, setUseCustomAlias] = useState(false);
   const [shortenedUrls, setShortenedUrls] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [currentUrl, setCurrentUrl] = useState(null);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("new");
 
   useEffect(() => {
@@ -94,7 +93,7 @@ export default function UrlShortener() {
     try {
       new URL(url);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   };
@@ -477,7 +476,7 @@ export default function UrlShortener() {
           <AccordionContent>
             <p>
               Oui, tous les liens créés avec notre service sont permanents et
-              n'expirent pas. Cependant, si vous supprimez un lien de votre
+              n&#39;expirent pas. Cependant, si vous supprimez un lien de votre
               historique, il ne sera plus accessible. Nous recommandons de
               conserver une copie de vos liens importants.
             </p>
@@ -563,4 +562,7 @@ export default function UrlShortener() {
       </div>
     </div>
   );
+}
+function setCopied(arg0: boolean) {
+  throw new Error("Function not implemented.");
 }
