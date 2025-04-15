@@ -55,7 +55,12 @@ const generateQRCode = (text: string, options: Record<string, any> = {}) => {
 
   const mergedOptions = { ...defaultOptions, ...options };
 
-  return new Promise((resolve) => {
+  return new Promise<{
+    dataURL: string;
+    options: Record<string, any>;
+    text: string;
+    type: string;
+  }>((resolve) => {
     setTimeout(() => {
       resolve({
         dataURL: `data:image/svg+xml;base64,${btoa(`
