@@ -115,7 +115,7 @@ const tools = [
     description: "Créez des QR codes personnalisés avec suivi d'utilisation",
     category: "misc",
     popular: true,
-    comingSoon: true,
+    comingSoon: false,
     path: "/tools/qr-generator",
     icon: "📱",
   },

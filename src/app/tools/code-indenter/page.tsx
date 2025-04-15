@@ -211,7 +211,7 @@ export default function CodeIndenter() {
       const lines = code.split(/>\s*</);
 
       for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
+        const line = lines[i];
 
         if (i === 0) {
           formatted += line.trim() + ">";
@@ -372,7 +372,7 @@ export default function CodeIndenter() {
       let indent = 0;
 
       for (let i = 0; i < lines.length; i++) {
-        let line = lines[i].trim();
+        const line = lines[i].trim();
         if (!line) continue;
 
         if (/\b(FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b/i.test(line)) {
@@ -385,8 +385,8 @@ export default function CodeIndenter() {
       }
 
       return result.trim();
-    } catch (e) {
-      throw new Error("Erreur lors du formatage SQL.", e);
+    } catch {
+      throw new Error("Erreur lors du formatage SQL.");
     }
   };
 

@@ -9,6 +9,7 @@ import {
   MapPin,
   Wifi,
   Info,
+  Calendar,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
@@ -40,7 +41,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const generateQRCode = (text, options = {}) => {
   const defaultOptions = {
@@ -64,7 +65,6 @@ const generateQRCode = (text, options = {}) => {
             <rect width="100%" height="100%" fill="${
               mergedOptions.backgroundColor
             }"/>
-            <!-- QR code pattern simulé -->
             <g fill="${mergedOptions.foregroundColor}">
               <rect x="20%" y="20%" width="10%" height="10%"/>
               <rect x="40%" y="20%" width="10%" height="10%"/>
@@ -74,19 +74,16 @@ const generateQRCode = (text, options = {}) => {
               <rect x="20%" y="60%" width="10%" height="10%"/>
               <rect x="40%" y="60%" width="10%" height="10%"/>
               <rect x="60%" y="60%" width="10%" height="10%"/>
-              <!-- Coin pattern -->
               <rect x="20%" y="20%" width="20%" height="5%"/>
               <rect x="20%" y="20%" width="5%" height="20%"/>
               <rect x="60%" y="20%" width="20%" height="5%"/>
               <rect x="75%" y="20%" width="5%" height="20%"/>
               <rect x="20%" y="60%" width="5%" height="20%"/>
               <rect x="20%" y="75%" width="20%" height="5%"/>
-              <!-- Data pattern -->
               <rect x="35%" y="35%" width="30%" height="5%"/>
               <rect x="35%" y="45%" width="30%" height="5%"/>
               <rect x="35%" y="55%" width="30%" height="5%"/>
             </g>
-            <!-- Logo simulation -->
             ${
               mergedOptions.logo
                 ? `<circle cx="${mergedOptions.size / 2}" cy="${
@@ -137,7 +134,6 @@ export default function QRGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState([]);
 
-  // Champs spécifiques aux types de QR code
   const [email, setEmail] = useState({ address: "", subject: "", body: "" });
   const [phone, setPhone] = useState("");
   const [sms, setSms] = useState({ number: "", message: "" });
@@ -166,7 +162,6 @@ export default function QRGenerator() {
     description: "",
   });
 
-  // Effet pour charger l'historique depuis le localStorage
   useEffect(() => {
     const savedHistory = localStorage.getItem("qrCodeHistory");
     if (savedHistory) {
@@ -178,19 +173,16 @@ export default function QRGenerator() {
     }
   }, []);
 
-  // Effet pour sauvegarder l'historique dans le localStorage
   useEffect(() => {
     if (history.length > 0) {
       localStorage.setItem("qrCodeHistory", JSON.stringify(history));
     }
   }, [history]);
 
-  // Fonction pour générer le QR code
   const handleGenerateQR = async () => {
     setIsGenerating(true);
 
     try {
-      // Préparer le contenu du QR code en fonction du type sélectionné
       let qrContent = "";
 
       switch (qrType) {
@@ -257,7 +249,6 @@ END:VEVENT`;
           qrContent = text;
       }
 
-      // Générer le QR code avec les options sélectionnées
       const qrCode = await generateQRCode(qrContent, {
         size,
         errorCorrection,
@@ -269,7 +260,6 @@ END:VEVENT`;
 
       setGeneratedQR(qrCode);
 
-      // Ajouter à l'historique
       if (qrContent.trim()) {
         const newHistoryItem = {
           id: Date.now().toString(),
@@ -278,10 +268,9 @@ END:VEVENT`;
           date: new Date().toISOString(),
           preview: qrCode.dataURL,
         };
-        setHistory([newHistoryItem, ...history.slice(0, 9)]); // Garder les 10 derniers
+        setHistory([newHistoryItem, ...history.slice(0, 9)]);
       }
 
-      // Passer à l'onglet de téléchargement
       setActiveTab("download");
     } catch (error) {
       console.error("Erreur lors de la génération du QR code:", error);
@@ -290,7 +279,6 @@ END:VEVENT`;
     }
   };
 
-  // Fonction pour réutiliser un QR code de l'historique
   const loadFromHistory = (item) => {
     setQrType(item.type);
     setText(item.content);
@@ -302,12 +290,9 @@ END:VEVENT`;
     setActiveTab("download");
   };
 
-  // Fonction pour copier l'image du QR code
   const copyQRImage = async () => {
     try {
       if (generatedQR) {
-        // Dans une implémentation réelle, il faudrait ajouter le code pour copier l'image dans le presse-papiers
-        // Pour la simulation, nous indiquons simplement que c'est copié
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
@@ -346,184 +331,6 @@ END:VEVENT`;
                 placeholder="https://exemple.com"
                 className="mt-1"
               />
-            </div>
-            <Accordion type="single" collapsible className="mb-8">
-              <h2 className="text-2xl font-bold mb-6">Questions fréquentes</h2>
-
-              <AccordionItem value="item-1">
-                <AccordionTrigger>
-                  Qu&#39;est-ce qu&#39;un QR code et comment l&#39;utiliser ?
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p>
-                    Un QR code (Quick Response code) est un type de code-barres
-                    en deux dimensions qui peut être scanné avec un smartphone
-                    ou une tablette pour accéder rapidement à des informations.
-                  </p>
-                  <p className="mt-2">Pour utiliser un QR code :</p>
-                  <ol className="list-decimal pl-5 mt-2 space-y-1">
-                    <li>
-                      Ouvrez l&#39;appareil photo de votre smartphone ou une
-                      application de scan de QR code
-                    </li>
-                    <li>
-                      Placez votre appareil devant le QR code pour le scanner
-                    </li>
-                    <li>
-                      Suivez le lien ou affichez l&#39;information contenue dans
-                      le QR code
-                    </li>
-                  </ol>
-                  <p className="mt-2">
-                    Les QR codes peuvent contenir différents types de données :
-                    URL, texte, coordonnées de contact, informations WiFi, etc.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2">
-                <AccordionTrigger>
-                  Quelles sont les différences entre les niveaux de correction
-                  d&#39;erreur ?
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p>
-                    Le niveau de correction d&#39;erreur détermine la capacité
-                    du QR code à rester lisible même s&#39;il est partiellement
-                    endommagé ou obstrué.
-                  </p>
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>
-                      <strong>Niveau L (Faible) - 7% :</strong> Offre une
-                      capacité de récupération minimale mais permet de stocker
-                      plus de données.
-                    </li>
-                    <li>
-                      <strong>Niveau M (Standard) - 15% :</strong> Équilibre
-                      entre la capacité de données et la résistance aux
-                      dommages. Recommandé pour un usage général.
-                    </li>
-                    <li>
-                      <strong>Niveau Q (Élevé) - 25% :</strong> Plus résistant
-                      aux dommages, idéal pour les environnements industriels ou
-                      extérieurs.
-                    </li>
-                    <li>
-                      <strong>Niveau H (Maximum) - 30% :</strong> Offre la
-                      meilleure protection contre les dommages, mais réduit la
-                      capacité de stockage de données.
-                    </li>
-                  </ul>
-                  <p className="mt-2">
-                    Si vous prévoyez d&#39;imprimer votre QR code sur des
-                    supports qui pourraient être rayés ou salis, ou si vous
-                    ajoutez un logo au centre, optez pour un niveau de
-                    correction plus élevé (Q ou H).
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger>
-                  Quel format de fichier QR code est le meilleur ?
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p>Le meilleur format dépend de votre utilisation prévue :</p>
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>
-                      <strong>SVG :</strong> Format vectoriel idéal pour
-                      l&#39;impression, le redimensionnement sans perte de
-                      qualité et le web. Préférez le SVG si vous devez imprimer
-                      votre QR code en grand format.
-                    </li>
-                    <li>
-                      <strong>PNG :</strong> Format bitmap avec transparence,
-                      parfait pour le web et les documents numériques. C&#39;est
-                      un bon choix pour la plupart des usages courants.
-                    </li>
-                    <li>
-                      <strong>JPG/JPEG :</strong> Format compressé sans
-                      transparence, adapté aux photos et aux impressions où la
-                      transparence n&#39;est pas nécessaire.
-                    </li>
-                    <li>
-                      <strong>PDF :</strong> Idéal pour l&#39;intégration dans
-                      des documents professionnels, présentations ou brochures.
-                    </li>
-                  </ul>
-                  <p className="mt-2">
-                    Pour un usage professionnel ou si vous devez redimensionner
-                    le QR code, le format SVG est généralement le meilleur
-                    choix.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger>
-                  Comment personnaliser l&#39;apparence de mon QR code ?
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p>
-                    Vous pouvez personnaliser votre QR code de plusieurs façons
-                    :
-                  </p>
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>
-                      <strong>Couleurs :</strong> Modifiez les couleurs du
-                      premier plan (modules du QR code) et de
-                      l&#39;arrière-plan. Pour une bonne lisibilité, maintenez
-                      un contraste élevé entre les deux couleurs.
-                    </li>
-                    <li>
-                      <strong>Taille :</strong> Ajustez la taille du QR code
-                      selon vos besoins. Pour l&#39;impression, assurez-vous que
-                      le code mesure au moins 2 × 2 cm pour être facilement
-                      scannable.
-                    </li>
-                    <li>
-                      <strong>Marge :</strong> Modifiez la marge blanche autour
-                      du QR code. Une marge minimale est nécessaire pour que le
-                      code soit correctement scannable.
-                    </li>
-                    <li>
-                      <strong>Logo :</strong> Ajoutez un logo au centre du QR
-                      code. Dans ce cas, augmentez le niveau de correction
-                      d&#39;erreur à Q ou H pour garantir que le code reste
-                      lisible.
-                    </li>
-                  </ul>
-                  <p className="mt-2">
-                    Important : Après toute personnalisation, testez toujours le
-                    scan de votre QR code avec plusieurs appareils pour vous
-                    assurer qu&#39;il fonctionne correctement.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="p-5 border rounded-lg">
-                <h3 className="font-bold mb-2">Multi-contenus</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  Créez des QR codes pour différents types de contenu : URLs,
-                  texte, email, contact, WiFi, et plus encore.
-                </p>
-              </div>
-              <div className="p-5 border rounded-lg">
-                <h3 className="font-bold mb-2">Personnalisation avancée</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  Modifiez les couleurs, la taille, les marges et ajoutez un
-                  logo pour personnaliser complètement vos QR codes.
-                </p>
-              </div>
-              <div className="p-5 border rounded-lg">
-                <h3 className="font-bold mb-2">Formats multiples</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  Téléchargez vos QR codes en SVG, PNG, JPG ou PDF selon vos
-                  besoins d&#39;utilisation et d&#39;impression.
-                </p>
-              </div>
             </div>
           </div>
         );
@@ -1045,24 +852,6 @@ END:VEVENT`;
                                   style={{ backgroundColor: backgroundColor }}
                                 ></div>
                                 <Input
-                                  id="bg-color"
-                                  type="text"
-                                  value={backgroundColor}
-                                  onChange={(e) =>
-                                    setBackgroundColor(e.target.value)
-                                  }
-                                  className="rounded-l-none"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <Label htmlFor="fg-color">Couleur du code</Label>
-                              <div className="flex mt-1">
-                                <div
-                                  className="w-10 h-10 rounded-l-md border border-r-0 flex items-center justify-center"
-                                  style={{ backgroundColor: foregroundColor }}
-                                ></div>
-                                <Input
                                   id="fg-color"
                                   type="text"
                                   value={foregroundColor}
@@ -1073,80 +862,179 @@ END:VEVENT`;
                                 />
                               </div>
                             </div>
-                          </div>
-
-                          <div>
-                            <Label htmlFor="error-correction">
-                              Niveau de correction d&#39;erreur
-                            </Label>
-                            <Select
-                              value={errorCorrection}
-                              onValueChange={setErrorCorrection}
-                            >
-                              <SelectTrigger
-                                id="error-correction"
-                                className="mt-1"
+                            <div>
+                              <Label htmlFor="error-correction">
+                                Niveau de correction d&#39;erreur
+                              </Label>
+                              <Select
+                                value={errorCorrection}
+                                onValueChange={setErrorCorrection}
                               >
-                                <SelectValue placeholder="Sélectionner" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="L">
-                                  <div className="flex items-center">
-                                    <span>Faible (L)</span>
-                                    <Badge variant="outline" className="ml-2">
-                                      7%
-                                    </Badge>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="M">
-                                  <div className="flex items-center">
-                                    <span>Standard (M)</span>
-                                    <Badge variant="outline" className="ml-2">
-                                      15%
-                                    </Badge>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="Q">
-                                  <div className="flex items-center">
-                                    <span>Élevé (Q)</span>
-                                    <Badge variant="outline" className="ml-2">
-                                      25%
-                                    </Badge>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="H">
-                                  <div className="flex items-center">
-                                    <span>Maximum (H)</span>
-                                    <Badge variant="outline" className="ml-2">
-                                      30%
-                                    </Badge>
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Un niveau plus élevé permet de scanner le QR code
-                              même s&#39;il est partiellement endommagé.
-                            </p>
-                          </div>
+                                <SelectTrigger
+                                  id="error-correction"
+                                  className="mt-1"
+                                >
+                                  <SelectValue placeholder="Sélectionner" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="L">
+                                    <div className="flex items-center">
+                                      <span>Faible (L)</span>
+                                      <Badge variant="outline" className="ml-2">
+                                        7%
+                                      </Badge>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="M">
+                                    <div className="flex items-center">
+                                      <span>Standard (M)</span>
+                                      <Badge variant="outline" className="ml-2">
+                                        15%
+                                      </Badge>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="Q">
+                                    <div className="flex items-center">
+                                      <span>Élevé (Q)</span>
+                                      <Badge variant="outline" className="ml-2">
+                                        25%
+                                      </Badge>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="H">
+                                    <div className="flex items-center">
+                                      <span>Maximum (H)</span>
+                                      <Badge variant="outline" className="ml-2">
+                                        30%
+                                      </Badge>
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Un niveau plus élevé permet de scanner le QR
+                                code même s&#39;il est partiellement endommagé.
+                              </p>
+                            </div>
 
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="with-logo"
-                              checked={withLogo}
-                              onCheckedChange={setWithLogo}
-                            />
-                            <Label htmlFor="with-logo">
-                              Ajouter un logo au centre (simulation)
-                            </Label>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                id="with-logo"
+                                checked={withLogo}
+                                onCheckedChange={setWithLogo}
+                              />
+                              <Label htmlFor="with-logo">
+                                Ajouter un logo au centre
+                              </Label>
+                            </div>
                           </div>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
+
+                  <div className="flex justify-end mt-6">
+                    <Button
+                      onClick={handleGenerateQR}
+                      disabled={isGenerating}
+                      className="w-full md:w-auto"
+                    >
+                      {isGenerating ? "Génération..." : "Générer le QR code"}
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
+              <TabsContent value="download">
+                {generatedQR && (
+                  <div className="space-y-6">
+                    <div className="flex flex-col items-center">
+                      <div className="mb-4 p-4 bg-white rounded-lg shadow-sm border">
+                        <img
+                          src={generatedQR.dataURL}
+                          alt="QR Code généré"
+                          className="mx-auto"
+                          style={{ width: size, height: size }}
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500 max-w-md text-center">
+                        Scannez ce QR code avec l&#39;appareil photo de votre
+                        smartphone ou une application de lecture de QR code.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+                      <Button onClick={() => downloadQRCode("svg")}>
+                        Télécharger en SVG
+                      </Button>
+                      <Button onClick={() => downloadQRCode("png")}>
+                        Télécharger en PNG
+                      </Button>
+                      <Button onClick={copyQRImage} className="sm:col-span-2">
+                        {copied ? "Copié!" : "Copier l'image"}
+                      </Button>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setActiveTab("content")}
+                        className="w-full"
+                      >
+                        Retour à l&#39;éditeur
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
             </Tabs>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-1">
+          <Card className="p-6 border-2">
+            <h2 className="text-xl font-bold mb-4">Historique récent</h2>
+            {history.length > 0 ? (
+              <div className="space-y-4">
+                {history.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex items-center space-x-3"
+                    onClick={() => loadFromHistory(item)}
+                  >
+                    <div className="flex-shrink-0">
+                      <img
+                        src={item.preview}
+                        alt={`QR code ${item.type}`}
+                        className="w-12 h-12 border"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {item.content.substring(0, 30)}
+                        {item.content.length > 30 ? "..." : ""}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(item.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearHistory}
+                  className="w-full mt-4"
+                >
+                  Effacer l&#39;historique
+                </Button>
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                Aucun QR code récent
+              </p>
+            )}
           </Card>
         </div>
       </div>
