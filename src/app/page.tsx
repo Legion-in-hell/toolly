@@ -40,8 +40,6 @@ const tools = [
     popular: true,
     comingSoon: false,
     demo: true,
-    comingSoon: false,
-    demo: true,
     path: "/tools/pdf-to-word",
     icon: "📄",
   },
@@ -53,7 +51,6 @@ const tools = [
     category: "compression",
     popular: true,
     comingSoon: false,
-    demo: false,
     demo: false,
     path: "/tools/image-compressor",
     icon: "🖼️",
@@ -100,7 +97,6 @@ const tools = [
     popular: false,
     comingSoon: true,
     demo: false,
-    demo: false,
     path: "/tools/file-merger",
     icon: "🔄",
   },
@@ -112,7 +108,6 @@ const tools = [
     category: "conversion",
     popular: false,
     comingSoon: true,
-    demo: false,
     demo: false,
     path: "/tools/audio-converter",
     icon: "🎵",
@@ -126,7 +121,6 @@ const tools = [
     popular: false,
     comingSoon: true,
     demo: false,
-    demo: false,
     path: "/tools/doc-anonymizer",
     icon: "👤",
   },
@@ -136,8 +130,6 @@ const tools = [
     description: "Créez des QR codes personnalisés avec suivi d'utilisation",
     category: "misc",
     popular: true,
-    comingSoon: false,
-    demo: true,
     comingSoon: false,
     demo: true,
     path: "/tools/qr-generator",
@@ -151,7 +143,6 @@ const tools = [
     popular: false,
     comingSoon: true,
     demo: false,
-    demo: false,
     path: "/tools/file-comparator",
     icon: "🔍",
   },
@@ -163,7 +154,6 @@ const tools = [
     category: "misc",
     popular: false,
     comingSoon: true,
-    demo: false,
     demo: false,
     path: "/tools/audio-enhancer",
     icon: "🎧",
@@ -177,7 +167,6 @@ const tools = [
     popular: true,
     comingSoon: true,
     demo: false,
-    demo: false,
     path: "/tools/grammar-checker",
     icon: "✓",
   },
@@ -189,7 +178,6 @@ const tools = [
     popular: true,
     comingSoon: true,
     demo: false,
-    demo: false,
     path: "/tools/translator",
     icon: "🌐",
   },
@@ -199,8 +187,6 @@ const tools = [
     description: "Formatez et indentez automatiquement votre code source",
     category: "text",
     popular: false,
-    comingSoon: false,
-    demo: false,
     comingSoon: false,
     demo: false,
     path: "/tools/code-indenter",
@@ -215,7 +201,6 @@ const tools = [
     popular: false,
     comingSoon: false,
     demo: false,
-    demo: false,
     path: "/tools/casse",
     icon: "Aa",
   },
@@ -228,7 +213,6 @@ const tools = [
     popular: false,
     comingSoon: false,
     demo: false,
-    demo: false,
     path: "/tools/character-escaper",
     icon: "\\",
   },
@@ -238,8 +222,6 @@ const tools = [
     description: "Consultez l'heure actuelle dans différents fuseaux horaires",
     category: "misc",
     popular: false,
-    comingSoon: false,
-    demo: false,
     comingSoon: false,
     demo: false,
     path: "/tools/world-clock",
@@ -253,7 +235,6 @@ const tools = [
     popular: true,
     comingSoon: true,
     demo: false,
-    demo: false,
     path: "/tools/currency-converter",
     icon: "💱",
   },
@@ -263,8 +244,6 @@ const tools = [
     description: "Créez des liens courts et faciles à partager",
     category: "misc",
     popular: false,
-    comingSoon: false,
-    demo: true,
     comingSoon: false,
     demo: true,
     path: "/tools/url-shortener",
@@ -324,19 +303,6 @@ export default function Home() {
               <Link href={tool.path} key={tool.id}>
                 <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200 dark:hover:border-blue-800">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{tool.icon}</span>
-                        <CardTitle>{tool.name}</CardTitle>
-                      </div>
-                      {tool.demo && (
-                        <Badge
-                          variant="outline"
-                          className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                        >
-                          Démo
-                        </Badge>
-                      )}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">{tool.icon}</span>
@@ -424,24 +390,6 @@ export default function Home() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">{tool.icon}</span>
                         <CardTitle className="text-lg">{tool.name}</CardTitle>
-                      </div>
-                      <div className="flex gap-2">
-                        {tool.comingSoon && (
-                          <Badge
-                            variant="outline"
-                            className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                          >
-                            Bientôt
-                          </Badge>
-                        )}
-                        {tool.demo && !tool.comingSoon && (
-                          <Badge
-                            variant="outline"
-                            className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                          >
-                            Démo
-                          </Badge>
-                        )}
                       </div>
                       <div className="flex gap-2">
                         {tool.comingSoon && (
