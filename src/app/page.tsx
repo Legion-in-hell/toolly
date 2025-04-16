@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Card,
@@ -13,6 +13,13 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 const categories = [
   { id: "all", name: "Tous les outils" },
@@ -55,8 +62,8 @@ const tools = [
       "Supprimez les informations personnelles cachées dans vos fichiers",
     category: "privacy",
     popular: false,
-    comingSoon: true,
-    demo: false,
+    comingSoon: false,
+    demo: true,
     path: "/tools/metadata-cleaner",
     icon: "🔒",
   },
@@ -66,8 +73,8 @@ const tools = [
     description: "Transformez un texte complexe en langage accessible",
     category: "text",
     popular: false,
-    comingSoon: true,
-    demo: false,
+    comingSoon: false,
+    demo: true,
     path: "/tools/text-simplifier",
     icon: "📝",
   },
@@ -77,8 +84,8 @@ const tools = [
     description: "Extrayez des tableaux depuis des PDFs ou des images",
     category: "extraction",
     popular: true,
-    comingSoon: true,
-    demo: false,
+    comingSoon: false,
+    demo: true,
     path: "/tools/table-extractor",
     icon: "📊",
   },
@@ -257,6 +264,11 @@ export default function Home() {
     return matchesSearch && matchesCategory;
   });
 
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category ? category.name : "Tous les outils";
+  };
+
   return (
     <main className="container mx-auto px-4 py-10 max-w-7xl">
       <section className="text-center mb-16">
@@ -318,19 +330,49 @@ export default function Home() {
       <section>
         <h2 className="text-2xl font-bold mb-6">Tous nos outils</h2>
 
-        <Tabs
-          defaultValue="all"
-          onValueChange={setActiveCategory}
-          className="mb-6"
-        >
-          <TabsList className="grid grid-cols-3 md:grid-cols-7 mb-4">
-            {categories.map((category) => (
-              <TabsTrigger key={category.id} value={category.id}>
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {/* Version pour tablette/desktop : onglets */}
+        <div className="hidden md:block mb-6">
+          <Tabs
+            defaultValue="all"
+            value={activeCategory}
+            onValueChange={setActiveCategory}
+          >
+            <TabsList className="grid grid-cols-7">
+              {categories.map((category) => (
+                <TabsTrigger key={category.id} value={category.id}>
+                  {category.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Version mobile : menu déroulant */}
+        <div className="md:hidden mb-6">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                <span>{getCategoryName(activeCategory)}</span>
+                <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-full">
+              {categories.map((category) => (
+                <DropdownMenuItem
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  className={
+                    activeCategory === category.id
+                      ? "bg-gray-100 dark:bg-gray-800"
+                      : ""
+                  }
+                >
+                  {category.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTools.length > 0 ? (
