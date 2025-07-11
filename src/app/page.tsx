@@ -165,7 +165,7 @@ const tools = [
       "Corrigez les fautes d'orthographe et de grammaire dans vos textes",
     category: "text",
     popular: true,
-    comingSoon: true,
+    comingSoon: false,
     demo: false,
     path: "/tools/grammar-checker",
     icon: "✓",
