@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const categories = [
+  { id: "all", name: "Tous les outils" },
   { id: "conversion", name: "Conversion" },
   { id: "compression", name: "Compression" },
   { id: "extraction", name: "Extraction" },
@@ -272,6 +273,28 @@ const tools = [
   },
 ];
 
+tools.sort((a, b) => {
+  if (!a.comingSoon && !a.demo && (b.comingSoon || b.demo)) {
+    return -1;
+  }
+  if (!a.demo && b.demo && !a.comingSoon) {
+    return -1;
+  }
+  if (a.demo && !a.comingSoon && !b.demo && !b.comingSoon) {
+    return 1;
+  }
+  if (a.demo && !a.comingSoon && b.comingSoon) {
+    return -1;
+  }
+  if (a.comingSoon && !b.comingSoon) {
+    return 1;
+  }
+  if (!a.comingSoon && b.comingSoon) {
+    return -1;
+  }
+  return 0;
+});
+
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -347,7 +370,6 @@ export default function Home() {
             ))}
         </div>
       </section>
-
       <section>
         <h2 className="text-2xl font-bold mb-6">Tous nos outils</h2>
 
