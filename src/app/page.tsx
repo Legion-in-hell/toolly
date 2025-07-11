@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const categories = [
-  { id: "all", name: "Tous les outils" },
   { id: "conversion", name: "Conversion" },
   { id: "compression", name: "Compression" },
   { id: "extraction", name: "Extraction" },
@@ -210,6 +209,17 @@ const tools = [
     icon: "\\",
   },
   {
+    id: "password-generator",
+    name: "Générateur de mots de passe",
+    description: "Créer des mots de passe complexes et aléatoires",
+    category: "text",
+    popular: false,
+    comingSoon: false,
+    demo: false,
+    path: "/tools/password-generator",
+    icon: "A*#",
+  },
+  {
     id: "world-clock",
     name: "Horloge mondiale",
     description: "Consultez l'heure actuelle dans différents fuseaux horaires",
@@ -219,6 +229,17 @@ const tools = [
     demo: false,
     path: "/tools/world-clock",
     icon: "🕒",
+  },
+  {
+    id: "unit-converter",
+    name: "Convertisseur d'unités",
+    description: "Convertissez entre différentes unités de mesure",
+    category: "conversion",
+    popular: true,
+    comingSoon: false,
+    demo: false,
+    path: "/tools/unit-converter",
+    icon: "🔢",
   },
   {
     id: "currency-converter",

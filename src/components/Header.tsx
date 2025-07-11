@@ -36,12 +36,6 @@ export default function Header() {
             Accueil
           </Link>
           <Link
-            href="/tools"
-            className="font-medium hover:text-blue-600 transition-colors"
-          >
-            Tous les outils
-          </Link>
-          <Link
             href="/about"
             className="font-medium hover:text-blue-600 transition-colors"
           >
