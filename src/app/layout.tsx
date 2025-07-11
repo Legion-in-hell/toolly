@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ReactNode } from "react";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import DiscordCTABanner from "@/components/cta";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="flex-grow">{children}</main>
+            <main className="flex-grow">
+              {children}
+              <DiscordCTABanner />
+            </main>
             <Footer />
           </div>
         </ThemeProvider>
