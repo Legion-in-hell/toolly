@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MoonIcon, SunIcon, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
@@ -23,6 +24,14 @@ export default function Header() {
     <header className="border-b">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
+          <Image
+            className="h-8 w-8"
+            src="/logo.png"
+            alt="Toolly Logo"
+            width={32}
+            height={32}
+            priority={true}
+          />
           <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Toolly
           </span>

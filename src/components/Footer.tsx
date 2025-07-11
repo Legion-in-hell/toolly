@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,6 +11,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-6 gap-8">
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
+              <Image
+                className="h-8 w-8"
+                src="/logo.png"
+                alt="Toolly Logo"
+                width={32}
+                height={32}
+                priority={true}
+              />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Toolly
               </span>

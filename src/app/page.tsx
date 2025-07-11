@@ -293,7 +293,7 @@ export default function Home() {
   return (
     <main className="container mx-auto px-4 py-10 max-w-7xl">
       <section className="text-center mb-16">
-        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent p-4">
           Toolly
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
