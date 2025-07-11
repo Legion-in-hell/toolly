@@ -95,7 +95,7 @@ export default function FrenchSpellChecker() {
   const [correctionLevel, setCorrectionLevel] = useState<
     "basic" | "standard" | "advanced"
   >("standard");
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(true);
   const [stats, setStats] = useState<CorrectionStats>({
     totalErrors: 0,
     spellingErrors: 0,
@@ -106,15 +106,23 @@ export default function FrenchSpellChecker() {
 
   // Surveiller le statut de connexion
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsOnline(navigator.onLine);
+    }
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+    }
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      }
     };
   }, []);
 
