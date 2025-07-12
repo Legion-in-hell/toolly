@@ -11,6 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -321,7 +329,7 @@ export default function Home() {
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
           Une boîte à outils complète pour tous vos besoins numériques, gratuit
-          et sans installation
+          et sans installation.
         </p>
 
         <div className="relative max-w-md mx-auto">
@@ -338,38 +346,52 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold mb-6">Outils Populaires</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tools
-            .filter((tool) => tool.popular && !tool.comingSoon)
-            .map((tool) => (
-              <Link href={tool.path} key={tool.id}>
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200 dark:hover:border-blue-800">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{tool.icon}</span>
-                        <CardTitle>{tool.name}</CardTitle>
+      {searchQuery.trim() === "" && (
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold mb-6">Outils Populaires</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tools
+              .filter((tool) => tool.popular && !tool.comingSoon)
+              .map((tool) => (
+                <Link href={tool.path} key={tool.id}>
+                  <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200 dark:hover:border-blue-800">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{tool.icon}</span>
+                          <CardTitle>{tool.name}</CardTitle>
+                        </div>
+                        {tool.demo && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 cursor-help"
+                                >
+                                  Démo
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  Version de démonstration uniquement visuelle,
+                                  sans fonctionnalités complètes.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
-                      {tool.demo && (
-                        <Badge
-                          variant="outline"
-                          className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                        >
-                          Démo
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription>{tool.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-        </div>
-      </section>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription>{tool.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+          </div>
+        </section>
+      )}
       <section>
         <h2 className="text-2xl font-bold mb-6">Tous nos outils</h2>
 
@@ -436,20 +458,44 @@ export default function Home() {
                       </div>
                       <div className="flex gap-2">
                         {tool.comingSoon && (
-                          <Badge
-                            variant="outline"
-                            className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                          >
-                            Bientôt
-                          </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 cursor-help"
+                                >
+                                  Bientôt
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  Outil en cours de développement, disponible
+                                  prochainement.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         {tool.demo && !tool.comingSoon && (
-                          <Badge
-                            variant="outline"
-                            className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                          >
-                            Démo
-                          </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 cursor-help"
+                                >
+                                  Démo
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  Version de démonstration uniquement visuelle,
+                                  sans fonctionnalités complètes.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
                     </div>
