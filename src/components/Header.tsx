@@ -56,6 +56,12 @@ export default function Header() {
           >
             Contact
           </Link>
+          <Link
+            href="/donation"
+            className="font-medium hover:text-blue-600 transition-colors"
+          >
+            Donation
+          </Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
