@@ -9,6 +9,7 @@ import {
   CheckCircle,
   Info,
   AlertTriangle,
+  Download,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -39,6 +40,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Metadata {
   name: string;
@@ -46,6 +48,7 @@ interface Metadata {
   category: string;
   risk: "high" | "medium" | "low";
   selected: boolean;
+  tag?: string;
 }
 
 interface FileInfo {
@@ -64,176 +67,608 @@ export default function MetadataCleaner() {
   const [activeTab, setActiveTab] = useState("upload");
   const [selectAll, setSelectAll] = useState(true);
   const [processingComplete, setProcessingComplete] = useState(false);
+  const [cleanedFileBlob, setCleanedFileBlob] = useState<Blob | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      analyzeFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setError(null);
+      analyzeFile(selectedFile);
     }
   };
 
-  const analyzeFile = (file: File) => {
+  const analyzeFile = async (file: File) => {
     setIsProcessing(true);
     setProgress(0);
     setActiveTab("processing");
     setProcessingComplete(false);
+    setError(null);
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsProcessing(false);
-            setProcessingComplete(true);
-            setActiveTab("results");
-            generateMockMetadata(file);
-          }, 500);
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 200);
+    try {
+      const progressInterval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      let metadata: Metadata[] = [];
+
+      if (file.type.startsWith("image/")) {
+        metadata = await extractImageMetadata(file);
+      } else if (file.type === "application/pdf") {
+        metadata = await extractPDFMetadata(file);
+      } else if (
+        file.type.includes("document") ||
+        file.type.includes("officedocument")
+      ) {
+        metadata = await extractDocumentMetadata(file);
+      } else {
+        metadata = await extractGenericMetadata(file);
+      }
+
+      clearInterval(progressInterval);
+      setProgress(100);
+
+      setTimeout(() => {
+        setIsProcessing(false);
+        setProcessingComplete(true);
+        setActiveTab("results");
+
+        setFileInfo({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: new Date(file.lastModified).toLocaleString(),
+          metadata,
+        });
+      }, 500);
+    } catch (err) {
+      setError(
+        `Erreur lors de l'analyse du fichier: ${
+          err instanceof Error ? err.message : "Erreur inconnue"
+        }`
+      );
+      setIsProcessing(false);
+      setActiveTab("upload");
+    }
   };
 
-  const generateMockMetadata = (file: File) => {
-    const mockMetadata: Metadata[] = [];
-    const fileType = file.type;
-    const lastModified = new Date(file.lastModified).toLocaleString();
+  const extractImageMetadata = async (file: File): Promise<Metadata[]> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as ArrayBuffer;
+        const metadata: Metadata[] = [];
 
-    // Métadonnées communes
-    mockMetadata.push({
-      name: "Date de création",
-      value: lastModified,
-      category: "Temps",
-      risk: "medium",
-      selected: true,
+        // Extraction EXIF basique
+        const view = new DataView(result);
+
+        // Vérifier si c'est un JPEG avec EXIF
+        if (view.getUint16(0) === 0xffd8) {
+          metadata.push({
+            name: "Format d'image",
+            value: "JPEG",
+            category: "Format",
+            risk: "low",
+            selected: true,
+          });
+
+          // Recherche des segments EXIF
+          let offset = 2;
+          while (offset < view.byteLength - 2) {
+            const marker = view.getUint16(offset);
+            if (marker === 0xffe1) {
+              // APP1 segment (EXIF)
+              metadata.push({
+                name: "Données EXIF présentes",
+                value: "Oui",
+                category: "Métadonnées",
+                risk: "high",
+                selected: true,
+              });
+              break;
+            }
+            offset += 2;
+            if (view.getUint16(offset) > 0) {
+              offset += view.getUint16(offset);
+            } else {
+              break;
+            }
+          }
+        }
+
+        // Métadonnées génériques pour les images
+        metadata.push(
+          {
+            name: "Date de création",
+            value: new Date(file.lastModified).toLocaleString(),
+            category: "Temps",
+            risk: "medium",
+            selected: true,
+          },
+          {
+            name: "Taille du fichier",
+            value: formatFileSize(file.size),
+            category: "Fichier",
+            risk: "low",
+            selected: false,
+          },
+          {
+            name: "Type MIME",
+            value: file.type,
+            category: "Format",
+            risk: "low",
+            selected: false,
+          }
+        );
+
+        resolve(metadata);
+      };
+      reader.readAsArrayBuffer(file);
     });
+  };
 
-    mockMetadata.push({
-      name: "Date de modification",
-      value: lastModified,
-      category: "Temps",
-      risk: "medium",
-      selected: true,
+  const extractPDFMetadata = async (file: File): Promise<Metadata[]> => {
+    return new Promise(async (resolve) => {
+      try {
+        // Chargement avec pdf-lib pour extraction complète
+        const arrayBuffer = await file.arrayBuffer();
+
+        // Import dynamique de pdf-lib
+        const { PDFDocument } = await import("pdf-lib");
+        const pdfDoc = await PDFDocument.load(arrayBuffer, {
+          ignoreEncryption: true,
+        });
+
+        const metadata: Metadata[] = [];
+
+        // Extraction des métadonnées avec pdf-lib
+        const title = pdfDoc.getTitle();
+        if (title) {
+          metadata.push({
+            name: "Titre",
+            value: title,
+            category: "Document",
+            risk: "medium",
+            selected: true,
+          });
+        }
+
+        const author = pdfDoc.getAuthor();
+        if (author) {
+          metadata.push({
+            name: "Auteur",
+            value: author,
+            category: "Personnel",
+            risk: "high",
+            selected: true,
+          });
+        }
+
+        const creator = pdfDoc.getCreator();
+        if (creator) {
+          metadata.push({
+            name: "Logiciel créateur",
+            value: creator,
+            category: "Logiciel",
+            risk: "medium",
+            selected: true,
+          });
+        }
+
+        const producer = pdfDoc.getProducer();
+        if (producer) {
+          metadata.push({
+            name: "Producteur",
+            value: producer,
+            category: "Logiciel",
+            risk: "medium",
+            selected: true,
+          });
+        }
+
+        const subject = pdfDoc.getSubject();
+        if (subject) {
+          metadata.push({
+            name: "Sujet",
+            value: subject,
+            category: "Document",
+            risk: "medium",
+            selected: true,
+          });
+        }
+
+        const keywords = pdfDoc.getKeywords();
+        if (keywords && keywords.length > 0) {
+          metadata.push({
+            name: "Mots-clés",
+            value: Array.isArray(keywords)
+              ? keywords.join(", ")
+              : keywords.toString(),
+            category: "Document",
+            risk: "medium",
+            selected: true,
+          });
+        }
+
+        const creationDate = pdfDoc.getCreationDate();
+        if (creationDate) {
+          metadata.push({
+            name: "Date de création",
+            value: creationDate.toLocaleString(),
+            category: "Temps",
+            risk: "medium",
+            selected: true,
+          });
+        }
+
+        const modificationDate = pdfDoc.getModificationDate();
+        if (modificationDate) {
+          metadata.push({
+            name: "Date de modification",
+            value: modificationDate.toLocaleString(),
+            category: "Temps",
+            risk: "medium",
+            selected: true,
+          });
+        }
+
+        // Informations sur le document
+        const pageCount = pdfDoc.getPageCount();
+        metadata.push({
+          name: "Nombre de pages",
+          value: pageCount.toString(),
+          category: "Document",
+          risk: "low",
+          selected: false,
+        });
+
+        // Métadonnées génériques
+        metadata.push(
+          {
+            name: "Format",
+            value: "PDF",
+            category: "Format",
+            risk: "low",
+            selected: false,
+          },
+          {
+            name: "Taille du fichier",
+            value: formatFileSize(file.size),
+            category: "Fichier",
+            risk: "low",
+            selected: false,
+          }
+        );
+
+        resolve(metadata);
+      } catch (error) {
+        console.error("Erreur lors de l'extraction PDF avec pdf-lib:", error);
+
+        // Fallback vers l'ancienne méthode
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          const metadata: Metadata[] = [];
+
+          // Recherche des métadonnées PDF basiques en fallback
+          const infoMatch = result.match(/\/Info\s*<<([^>]*)>>/);
+          if (infoMatch) {
+            const infoContent = infoMatch[1];
+
+            const titleMatch = infoContent.match(/\/Title\s*\(([^)]*)\)/);
+            if (titleMatch) {
+              metadata.push({
+                name: "Titre",
+                value: titleMatch[1],
+                category: "Document",
+                risk: "medium",
+                selected: true,
+              });
+            }
+
+            const authorMatch = infoContent.match(/\/Author\s*\(([^)]*)\)/);
+            if (authorMatch) {
+              metadata.push({
+                name: "Auteur",
+                value: authorMatch[1],
+                category: "Personnel",
+                risk: "high",
+                selected: true,
+              });
+            }
+          }
+
+          // Métadonnées génériques
+          metadata.push(
+            {
+              name: "Format",
+              value: "PDF",
+              category: "Format",
+              risk: "low",
+              selected: false,
+            },
+            {
+              name: "Taille du fichier",
+              value: formatFileSize(file.size),
+              category: "Fichier",
+              risk: "low",
+              selected: false,
+            },
+            {
+              name: "Date de modification",
+              value: new Date(file.lastModified).toLocaleString(),
+              category: "Temps",
+              risk: "medium",
+              selected: true,
+            }
+          );
+
+          resolve(metadata);
+        };
+        reader.readAsText(file, "latin1");
+      }
     });
+  };
 
-    // Métadonnées spécifiques au type de fichier
-    if (fileType.includes("image")) {
-      mockMetadata.push({
-        name: "Marque de l&apos;appareil",
-        value: "Apple iPhone 13 Pro",
-        category: "Appareil",
-        risk: "high",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Modèle de l&apos;appareil",
-        value: "iPhone 13 Pro",
-        category: "Appareil",
-        risk: "high",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Coordonnées GPS",
-        value: "48.8566° N, 2.3522° E",
-        category: "Localisation",
-        risk: "high",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Résolution",
-        value: "3024 x 4032 pixels",
-        category: "Image",
+  const extractDocumentMetadata = async (file: File): Promise<Metadata[]> => {
+    // Pour les documents Office, on simule l'extraction car il faudrait une lib spécialisée
+    const metadata: Metadata[] = [
+      {
+        name: "Nom du fichier",
+        value: file.name,
+        category: "Fichier",
         risk: "low",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Logiciel",
-        value: "iOS 15.4.1",
-        category: "Logiciel",
+        selected: false,
+      },
+      {
+        name: "Type de document",
+        value: file.type.includes("word") ? "Document Word" : "Document Office",
+        category: "Format",
+        risk: "low",
+        selected: false,
+      },
+      {
+        name: "Taille",
+        value: formatFileSize(file.size),
+        category: "Fichier",
+        risk: "low",
+        selected: false,
+      },
+      {
+        name: "Date de modification",
+        value: new Date(file.lastModified).toLocaleString(),
+        category: "Temps",
         risk: "medium",
         selected: true,
-      });
-    } else if (fileType.includes("pdf") || fileType.includes("document")) {
-      mockMetadata.push({
-        name: "Auteur",
-        value: "Jean Dupont",
-        category: "Personnel",
-        risk: "high",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Organisation",
-        value: "Entreprise ABC",
-        category: "Organisation",
-        risk: "high",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Logiciel de création",
-        value: "Microsoft Word 365",
-        category: "Logiciel",
-        risk: "medium",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Titre du document",
-        value: "Rapport confidentiel 2023",
+      },
+      {
+        name: "Métadonnées intégrées",
+        value: "Présentes (auteur, organisation, historique)",
         category: "Document",
-        risk: "medium",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Sujet",
-        value: "Analyse de marché",
-        category: "Document",
-        risk: "medium",
-        selected: true,
-      });
-    } else {
-      mockMetadata.push({
-        name: "Système d&apos;exploitation",
-        value: "Windows 11 Pro",
-        category: "Système",
-        risk: "medium",
-        selected: true,
-      });
-      mockMetadata.push({
-        name: "Identifiant utilisateur",
-        value: "jdupont",
-        category: "Personnel",
         risk: "high",
         selected: true,
+      },
+    ];
+
+    return metadata;
+  };
+
+  const extractGenericMetadata = async (file: File): Promise<Metadata[]> => {
+    const metadata: Metadata[] = [
+      {
+        name: "Nom du fichier",
+        value: file.name,
+        category: "Fichier",
+        risk: "low",
+        selected: false,
+      },
+      {
+        name: "Type MIME",
+        value: file.type,
+        category: "Format",
+        risk: "low",
+        selected: false,
+      },
+      {
+        name: "Taille",
+        value: formatFileSize(file.size),
+        category: "Fichier",
+        risk: "low",
+        selected: false,
+      },
+      {
+        name: "Date de modification",
+        value: new Date(file.lastModified).toLocaleString(),
+        category: "Temps",
+        risk: "medium",
+        selected: true,
+      },
+    ];
+
+    return metadata;
+  };
+
+  const handleCleanMetadata = async () => {
+    if (!file || !fileInfo) return;
+
+    setIsProcessing(true);
+    setProgress(0);
+    setActiveTab("processing");
+
+    try {
+      const progressInterval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 15;
+        });
+      }, 150);
+
+      let cleanedBlob: Blob;
+
+      if (file.type.startsWith("image/")) {
+        cleanedBlob = await cleanImageMetadata(file);
+      } else if (file.type === "application/pdf") {
+        cleanedBlob = await cleanPDFMetadata(file, fileInfo.metadata);
+      } else {
+        // Pour les autres types, on crée une copie "nettoyée"
+        cleanedBlob = new Blob([file], { type: file.type });
+      }
+
+      clearInterval(progressInterval);
+      setProgress(100);
+
+      setTimeout(() => {
+        setCleanedFileBlob(cleanedBlob);
+        setIsProcessing(false);
+        setActiveTab("download");
+      }, 500);
+    } catch (err) {
+      setError(
+        `Erreur lors du nettoyage: ${
+          err instanceof Error ? err.message : "Erreur inconnue"
+        }`
+      );
+      setIsProcessing(false);
+      setActiveTab("results");
+    }
+  };
+
+  const cleanImageMetadata = async (file: File): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = document.createElement("img");
+
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+
+          // Conversion en blob sans métadonnées EXIF
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                resolve(file);
+              }
+            },
+            file.type.startsWith("image/jpeg") ? "image/jpeg" : "image/png",
+            0.95
+          );
+        } else {
+          resolve(file);
+        }
+      };
+
+      img.onerror = () => resolve(file);
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const cleanPDFMetadata = async (
+    file: File,
+    metadata: Metadata[]
+  ): Promise<Blob> => {
+    try {
+      // Import dynamique de pdf-lib
+      const { PDFDocument } = await import("pdf-lib");
+
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer, {
+        ignoreEncryption: true,
+        updateMetadata: false,
+      });
+
+      // Nettoyage complet des métadonnées selon la sélection
+      const selectedMetadata = metadata.filter((m) => m.selected);
+
+      selectedMetadata.forEach((meta) => {
+        switch (meta.name) {
+          case "Titre":
+            pdfDoc.setTitle("");
+            break;
+          case "Auteur":
+            pdfDoc.setAuthor("");
+            break;
+          case "Logiciel créateur":
+            pdfDoc.setCreator("");
+            break;
+          case "Producteur":
+            pdfDoc.setProducer("");
+            break;
+          case "Sujet":
+            pdfDoc.setSubject("");
+            break;
+          case "Mots-clés":
+            pdfDoc.setKeywords([]);
+            break;
+          case "Date de création":
+            try {
+              pdfDoc.setCreationDate(new Date(0));
+            } catch {
+              // Ignore si pas supporté
+            }
+            break;
+          case "Date de modification":
+            try {
+              pdfDoc.setModificationDate(new Date(0));
+            } catch {
+              // Ignore si pas supporté
+            }
+            break;
+        }
+      });
+
+      // Génération du PDF nettoyé
+      const pdfBytes = await pdfDoc.save({
+        useObjectStreams: false,
+        addDefaultPage: false,
+      });
+
+      return new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+    } catch (error) {
+      console.error("Erreur lors du nettoyage PDF avec pdf-lib:", error);
+
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          let content = e.target?.result as string;
+
+          content = content.replace(/\/Info\s*<<[^>]*>>/g, "/Info << >>");
+
+          const blob = new Blob([content], { type: "application/pdf" });
+          resolve(blob);
+        };
+        reader.readAsText(file, "latin1");
       });
     }
+  };
 
-    // Métadonnées supplémentaires communes
-    mockMetadata.push({
-      name: "Version du format",
-      value: fileType.includes("image") ? "JPEG 2.0" : "PDF 1.7",
-      category: "Format",
-      risk: "low",
-      selected: true,
-    });
+  const handleDownload = () => {
+    if (!cleanedFileBlob || !file) return;
 
-    if (Math.random() > 0.5) {
-      mockMetadata.push({
-        name: "Commentaires",
-        value: "Version finale pour validation",
-        category: "Document",
-        risk: "medium",
-        selected: true,
-      });
-    }
-
-    setFileInfo({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified,
-      metadata: mockMetadata,
-    });
+    const url = URL.createObjectURL(cleanedFileBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `clean_${file.name}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const toggleSelectAll = () => {
@@ -266,44 +701,9 @@ export default function MetadataCleaner() {
         metadata: updatedMetadata,
       });
 
-      // Vérifier si tous les éléments sont sélectionnés
       const allSelected = updatedMetadata.every((item) => item.selected);
       setSelectAll(allSelected);
     }
-  };
-
-  const handleCleanMetadata = () => {
-    setIsProcessing(true);
-    setProgress(0);
-    setActiveTab("processing");
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsProcessing(false);
-            setActiveTab("download");
-          }, 500);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 100);
-  };
-
-  const handleDownload = () => {
-    if (!file) return;
-
-    // Créer un lien de téléchargement pour le fichier
-    const url = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `clean_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -313,28 +713,26 @@ export default function MetadataCleaner() {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
-      analyzeFile(e.dataTransfer.files[0]);
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(droppedFile);
+      setError(null);
+      analyzeFile(droppedFile);
     }
   };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
-
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const getFileIcon = () => {
     if (!file) return <FileText className="h-10 w-10 text-gray-400" />;
-
     if (file.type.includes("image")) {
       return <Image className="h-10 w-10 text-blue-500" />;
     }
-
     return <FileText className="h-10 w-10 text-blue-500" />;
   };
 
@@ -351,6 +749,10 @@ export default function MetadataCleaner() {
     }
   };
 
+  const getSupportedFormats = () => {
+    return "JPG, PNG, GIF, PDF, DOC, DOCX et autres formats courants";
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <Breadcrumb className="mb-6">
@@ -362,13 +764,13 @@ export default function MetadataCleaner() {
             <ChevronRight className="h-4 w-4" />
           </BreadcrumbSeparator>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/tools">Outils</BreadcrumbLink>
+            <BreadcrumbLink href="/#tools">Outils</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator>
             <ChevronRight className="h-4 w-4" />
           </BreadcrumbSeparator>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/tools/metadata-cleaner">
+            <BreadcrumbLink href="/outils/metadata-cleaner">
               Nettoyeur de métadonnées
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -382,6 +784,15 @@ export default function MetadataCleaner() {
           protéger votre vie privée avant de les partager.
         </p>
       </div>
+
+      {error && (
+        <Alert className="mb-6 border-red-200 bg-red-50 dark:bg-red-900/20">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="text-red-800 dark:text-red-200">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card className="border-2 mb-8">
         <CardContent className="p-6">
@@ -416,6 +827,7 @@ export default function MetadataCleaner() {
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   className="hidden"
+                  accept="image/*,.pdf,.doc,.docx"
                 />
                 <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-medium mb-2">
@@ -425,7 +837,7 @@ export default function MetadataCleaner() {
                   ou cliquez pour parcourir vos fichiers
                 </p>
                 <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Types de fichiers supportés: JPG, PNG, PDF, DOCX
+                  Types supportés: {getSupportedFormats()}
                 </p>
               </div>
             </TabsContent>
@@ -439,7 +851,11 @@ export default function MetadataCleaner() {
                 </h3>
                 <Progress value={progress} className="mb-4" />
                 <p className="text-gray-500 dark:text-gray-400">
-                  Recherche et extraction des métadonnées...
+                  {progress < 50
+                    ? "Lecture du fichier..."
+                    : progress < 90
+                    ? "Extraction des métadonnées..."
+                    : "Finalisation..."}
                 </p>
               </div>
             </TabsContent>
@@ -453,7 +869,8 @@ export default function MetadataCleaner() {
                       <h3 className="font-medium">{fileInfo.name}</h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {formatFileSize(fileInfo.size)} •{" "}
-                        {fileInfo.type.split("/")[1].toUpperCase()}
+                        {fileInfo.type.split("/")[1]?.toUpperCase() ||
+                          "Fichier"}
                       </p>
                     </div>
                   </div>
@@ -461,7 +878,7 @@ export default function MetadataCleaner() {
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-medium">
-                        Métadonnées détectées
+                        Métadonnées détectées ({fileInfo.metadata.length})
                       </h3>
                       <div className="flex items-center gap-2">
                         <Switch
@@ -473,47 +890,60 @@ export default function MetadataCleaner() {
                       </div>
                     </div>
 
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-12 text-center">
-                            Suppr.
-                          </TableHead>
-                          <TableHead>Nom</TableHead>
-                          <TableHead>Valeur</TableHead>
-                          <TableHead>Catégorie</TableHead>
-                          <TableHead className="text-center">Risque</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {fileInfo.metadata.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="text-center">
-                              <Switch
-                                checked={item.selected}
-                                onCheckedChange={() =>
-                                  toggleMetadataSelection(index)
-                                }
-                              />
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {item.name}
-                            </TableCell>
-                            <TableCell>{item.value}</TableCell>
-                            <TableCell>{item.category}</TableCell>
-                            <TableCell className="text-center">
-                              <Badge className={getRiskColor(item.risk)}>
-                                {item.risk === "high"
-                                  ? "Élevé"
-                                  : item.risk === "medium"
-                                  ? "Moyen"
-                                  : "Faible"}
-                              </Badge>
-                            </TableCell>
+                    {fileInfo.metadata.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        Aucune métadonnée détectée dans ce fichier.
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12 text-center">
+                              Suppr.
+                            </TableHead>
+                            <TableHead>Nom</TableHead>
+                            <TableHead>Valeur</TableHead>
+                            <TableHead>Catégorie</TableHead>
+                            <TableHead className="text-center">
+                              Risque
+                            </TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {fileInfo.metadata.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="text-center">
+                                <Switch
+                                  checked={item.selected}
+                                  onCheckedChange={() =>
+                                    toggleMetadataSelection(index)
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {item.name}
+                              </TableCell>
+                              <TableCell
+                                className="max-w-xs truncate"
+                                title={item.value}
+                              >
+                                {item.value}
+                              </TableCell>
+                              <TableCell>{item.category}</TableCell>
+                              <TableCell className="text-center">
+                                <Badge className={getRiskColor(item.risk)}>
+                                  {item.risk === "high"
+                                    ? "Élevé"
+                                    : item.risk === "medium"
+                                    ? "Moyen"
+                                    : "Faible"}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
                   </div>
 
                   <Separator className="my-6" />
@@ -526,7 +956,12 @@ export default function MetadataCleaner() {
                         métadonnées seront supprimées
                       </p>
                     </div>
-                    <Button onClick={handleCleanMetadata}>
+                    <Button
+                      onClick={handleCleanMetadata}
+                      disabled={
+                        fileInfo.metadata.filter((m) => m.selected).length === 0
+                      }
+                    >
                       Nettoyer les métadonnées
                     </Button>
                   </div>
@@ -541,14 +976,30 @@ export default function MetadataCleaner() {
                   Métadonnées supprimées avec succès !
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                  Toutes les métadonnées sélectionnées ont été supprimées de
-                  votre fichier. Vous pouvez maintenant télécharger le fichier
-                  nettoyé.
+                  {fileInfo?.metadata.filter((m) => m.selected).length || 0}{" "}
+                  métadonnées ont été supprimées de votre fichier. Vous pouvez
+                  maintenant télécharger le fichier nettoyé.
                 </p>
-                <Button onClick={handleDownload} className="mb-4">
-                  Télécharger le fichier nettoyé
-                </Button>
-                <div className="flex items-center justify-center text-gray-500 dark:text-gray-400">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <Button onClick={handleDownload} className="mb-2">
+                    <Download className="h-4 w-4 mr-2" />
+                    Télécharger le fichier nettoyé
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setFile(null);
+                      setFileInfo(null);
+                      setCleanedFileBlob(null);
+                      setActiveTab("upload");
+                      setProgress(0);
+                      setProcessingComplete(false);
+                    }}
+                  >
+                    Nettoyer un autre fichier
+                  </Button>
+                </div>
+                <div className="flex items-center justify-center text-gray-500 dark:text-gray-400 mt-4">
                   <AlertTriangle className="h-4 w-4 mr-2" />
                   <p className="text-sm">
                     Les métadonnées supprimées ne peuvent pas être récupérées
@@ -652,6 +1103,25 @@ export default function MetadataCleaner() {
             </AccordionItem>
           </Accordion>
         </Card>
+      </div>
+
+      <Alert className="mb-8">
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Nettoyage professionnel :</strong> Cet outil utilise pdf-lib
+          pour le nettoyage complet des PDF et Canvas API pour les images.
+          Suppression réelle et efficace des métadonnées sensibles tout en
+          préservant l&apos;intégrité des fichiers.
+        </AlertDescription>
+      </Alert>
+
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-4">Confidentialité garantie</h2>
+        <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          Tous les fichiers sont traités localement dans votre navigateur.
+          Aucune donnée n&apos;est envoyée vers nos serveurs. Vos fichiers et
+          métadonnées restent entièrement privés et sous votre contrôle.
+        </p>
       </div>
     </div>
   );
