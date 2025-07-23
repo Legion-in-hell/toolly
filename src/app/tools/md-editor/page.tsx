@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   ChevronRight,
   Copy,
@@ -77,7 +77,6 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
       '<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-md overflow-x-auto mb-4 font-mono text-sm"><code>$2</code></pre>'
     );
 
-    // Split into lines for line-by-line processing
     let lines = html.split("\n");
     let result = [];
     let inList = false;
@@ -87,7 +86,6 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
       let line = lines[i];
       let processedLine = line;
 
-      // Headers (must be at start of line)
       if (line.match(/^### /)) {
         if (inList) {
           result.push(
