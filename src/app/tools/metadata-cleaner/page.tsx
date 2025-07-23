@@ -1181,7 +1181,7 @@ export default function MetadataCleaner() {
         addDefaultPage: false,
       });
 
-      return new Blob([pdfBytes.buffer], {
+      return new Blob([new Uint8Array(pdfBytes)], {
         type: "application/pdf",
       });
     } catch (error) {
