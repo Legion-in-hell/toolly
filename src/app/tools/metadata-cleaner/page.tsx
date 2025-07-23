@@ -146,73 +146,612 @@ export default function MetadataCleaner() {
       reader.onload = (e) => {
         const result = e.target?.result as ArrayBuffer;
         const metadata: Metadata[] = [];
-
-        // Extraction EXIF basique
         const view = new DataView(result);
 
-        // Vérifier si c'est un JPEG avec EXIF
-        if (view.getUint16(0) === 0xffd8) {
-          metadata.push({
-            name: "Format d'image",
-            value: "JPEG",
-            category: "Format",
-            risk: "low",
-            selected: true,
-          });
+        try {
+          // Vérifier si c'est un JPEG avec EXIF
+          if (view.getUint16(0) === 0xffd8) {
+            metadata.push({
+              name: "Format d'image",
+              value: "JPEG",
+              category: "Format",
+              risk: "low",
+              selected: false,
+            });
 
-          // Recherche des segments EXIF
-          let offset = 2;
-          while (offset < view.byteLength - 2) {
-            const marker = view.getUint16(offset);
-            if (marker === 0xffe1) {
-              // APP1 segment (EXIF)
-              metadata.push({
-                name: "Données EXIF présentes",
-                value: "Oui",
-                category: "Métadonnées",
-                risk: "high",
-                selected: true,
-              });
-              break;
-            }
-            offset += 2;
-            if (view.getUint16(offset) > 0) {
-              offset += view.getUint16(offset);
-            } else {
-              break;
-            }
+            // Recherche et extraction des données EXIF complètes
+            const exifData = extractExifData(view);
+            metadata.push(...exifData);
+          } else if (file.type.includes("png")) {
+            metadata.push({
+              name: "Format d'image",
+              value: "PNG",
+              category: "Format",
+              risk: "low",
+              selected: false,
+            });
+
+            // Extraction des métadonnées PNG
+            const pngData = extractPngMetadata(view);
+            metadata.push(...pngData);
           }
+
+          // Métadonnées génériques pour les images
+          metadata.push(
+            {
+              name: "Date de modification du fichier",
+              value: new Date(file.lastModified).toLocaleString(),
+              category: "Temps",
+              risk: "medium",
+              selected: true,
+            },
+            {
+              name: "Taille du fichier",
+              value: formatFileSize(file.size),
+              category: "Fichier",
+              risk: "low",
+              selected: false,
+            },
+            {
+              name: "Type MIME",
+              value: file.type,
+              category: "Format",
+              risk: "low",
+              selected: false,
+            }
+          );
+        } catch (error) {
+          console.error("Erreur lors de l'extraction EXIF:", error);
+          // Métadonnées de base en cas d'erreur
+          metadata.push(
+            {
+              name: "Format d'image",
+              value: file.type.split("/")[1]?.toUpperCase() || "Image",
+              category: "Format",
+              risk: "low",
+              selected: false,
+            },
+            {
+              name: "Taille du fichier",
+              value: formatFileSize(file.size),
+              category: "Fichier",
+              risk: "low",
+              selected: false,
+            }
+          );
         }
-
-        // Métadonnées génériques pour les images
-        metadata.push(
-          {
-            name: "Date de création",
-            value: new Date(file.lastModified).toLocaleString(),
-            category: "Temps",
-            risk: "medium",
-            selected: true,
-          },
-          {
-            name: "Taille du fichier",
-            value: formatFileSize(file.size),
-            category: "Fichier",
-            risk: "low",
-            selected: false,
-          },
-          {
-            name: "Type MIME",
-            value: file.type,
-            category: "Format",
-            risk: "low",
-            selected: false,
-          }
-        );
 
         resolve(metadata);
       };
       reader.readAsArrayBuffer(file);
     });
+  };
+
+  // Fonction d'extraction EXIF complète
+  const extractExifData = (view: DataView): Metadata[] => {
+    const metadata: Metadata[] = [];
+    let offset = 2;
+
+    try {
+      // Parcourir les segments JPEG
+      while (offset < view.byteLength - 2) {
+        const marker = view.getUint16(offset);
+
+        if (marker === 0xffe1) {
+          // APP1 segment (EXIF)
+          const exifStart = offset + 4;
+
+          // Vérifier la signature EXIF
+          if (view.getUint32(exifStart) === 0x45786966) {
+            // "Exif"
+            const tiffStart = exifStart + 6;
+            const exifMetadata = parseExifTiff(view, tiffStart);
+            metadata.push(...exifMetadata);
+          }
+          break;
+        }
+
+        offset += 2;
+        if (offset < view.byteLength - 2) {
+          const segmentLength = view.getUint16(offset);
+          offset += segmentLength;
+        } else {
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("Erreur extraction EXIF:", error);
+      metadata.push({
+        name: "Données EXIF présentes",
+        value: "Détectées mais non lisibles",
+        category: "Métadonnées",
+        risk: "medium",
+        selected: true,
+      });
+    }
+
+    return metadata;
+  };
+
+  // Fonction de parsing TIFF/EXIF
+  const parseExifTiff = (view: DataView, tiffStart: number): Metadata[] => {
+    const metadata: Metadata[] = [];
+
+    try {
+      // Déterminer l'endianness
+      const byteOrder = view.getUint16(tiffStart);
+      const littleEndian = byteOrder === 0x4949;
+
+      // Lire l'offset de l'IFD0
+      const ifd0Offset = littleEndian
+        ? view.getUint32(tiffStart + 4, true)
+        : view.getUint32(tiffStart + 4, false);
+
+      // Parser l'IFD0
+      const ifd0Data = parseIfd(
+        view,
+        tiffStart + ifd0Offset,
+        tiffStart,
+        littleEndian
+      );
+      metadata.push(...ifd0Data);
+
+      // Chercher l'EXIF SubIFD
+      const exifIfdOffset = findExifSubIfd(
+        view,
+        tiffStart + ifd0Offset,
+        tiffStart,
+        littleEndian
+      );
+      if (exifIfdOffset) {
+        const exifData = parseIfd(
+          view,
+          tiffStart + exifIfdOffset,
+          tiffStart,
+          littleEndian
+        );
+        metadata.push(...exifData);
+      }
+
+      // Chercher l'IFD GPS
+      const gpsIfdOffset = findGpsIfd(
+        view,
+        tiffStart + ifd0Offset,
+        tiffStart,
+        littleEndian
+      );
+      if (gpsIfdOffset) {
+        const gpsData = parseGpsIfd(
+          view,
+          tiffStart + gpsIfdOffset,
+          tiffStart,
+          littleEndian
+        );
+        metadata.push(...gpsData);
+      }
+    } catch (error) {
+      console.error("Erreur parsing TIFF:", error);
+    }
+
+    return metadata;
+  };
+
+  // Parser un IFD (Image File Directory)
+  const parseIfd = (
+    view: DataView,
+    ifdStart: number,
+    tiffStart: number,
+    littleEndian: boolean
+  ): Metadata[] => {
+    const metadata: Metadata[] = [];
+
+    try {
+      const entryCount = littleEndian
+        ? view.getUint16(ifdStart, true)
+        : view.getUint16(ifdStart, false);
+
+      for (let i = 0; i < entryCount; i++) {
+        const entryOffset = ifdStart + 2 + i * 12;
+        const tag = littleEndian
+          ? view.getUint16(entryOffset, true)
+          : view.getUint16(entryOffset, false);
+
+        const type = littleEndian
+          ? view.getUint16(entryOffset + 2, true)
+          : view.getUint16(entryOffset + 2, false);
+
+        const count = littleEndian
+          ? view.getUint32(entryOffset + 4, true)
+          : view.getUint32(entryOffset + 4, false);
+
+        const valueOffset = littleEndian
+          ? view.getUint32(entryOffset + 8, true)
+          : view.getUint32(entryOffset + 8, false);
+
+        const tagInfo = getExifTagInfo(tag);
+        if (tagInfo) {
+          const value = readExifValue(
+            view,
+            type,
+            count,
+            valueOffset,
+            tiffStart,
+            littleEndian,
+            entryOffset + 8
+          );
+          if (value) {
+            metadata.push({
+              name: tagInfo.name,
+              value: value,
+              category: tagInfo.category,
+              risk: tagInfo.risk,
+              selected: tagInfo.risk !== "low",
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Erreur parsing IFD:", error);
+    }
+
+    return metadata;
+  };
+
+  // Trouver l'offset de l'EXIF SubIFD
+  const findExifSubIfd = (
+    view: DataView,
+    ifdStart: number,
+    tiffStart: number,
+    littleEndian: boolean
+  ): number | null => {
+    try {
+      const entryCount = littleEndian
+        ? view.getUint16(ifdStart, true)
+        : view.getUint16(ifdStart, false);
+
+      for (let i = 0; i < entryCount; i++) {
+        const entryOffset = ifdStart + 2 + i * 12;
+        const tag = littleEndian
+          ? view.getUint16(entryOffset, true)
+          : view.getUint16(entryOffset, false);
+
+        if (tag === 0x8769) {
+          // EXIF SubIFD tag
+          return littleEndian
+            ? view.getUint32(entryOffset + 8, true)
+            : view.getUint32(entryOffset + 8, false);
+        }
+      }
+    } catch {
+      // Ignore les erreurs
+    }
+    return null;
+  };
+
+  // Trouver l'offset du GPS IFD
+  const findGpsIfd = (
+    view: DataView,
+    ifdStart: number,
+    tiffStart: number,
+    littleEndian: boolean
+  ): number | null => {
+    try {
+      const entryCount = littleEndian
+        ? view.getUint16(ifdStart, true)
+        : view.getUint16(ifdStart, false);
+
+      for (let i = 0; i < entryCount; i++) {
+        const entryOffset = ifdStart + 2 + i * 12;
+        const tag = littleEndian
+          ? view.getUint16(entryOffset, true)
+          : view.getUint16(entryOffset, false);
+
+        if (tag === 0x8825) {
+          // GPS IFD tag
+          return littleEndian
+            ? view.getUint32(entryOffset + 8, true)
+            : view.getUint32(entryOffset + 8, false);
+        }
+      }
+    } catch {
+      // Ignore les erreurs
+    }
+    return null;
+  };
+
+  // Parser le GPS IFD
+  const parseGpsIfd = (
+    view: DataView,
+    gpsStart: number,
+    tiffStart: number,
+    littleEndian: boolean
+  ): Metadata[] => {
+    const metadata: Metadata[] = [];
+
+    try {
+      const entryCount = littleEndian
+        ? view.getUint16(gpsStart, true)
+        : view.getUint16(gpsStart, false);
+
+      let latitude = "";
+      let longitude = "";
+      let latRef = "";
+      let lonRef = "";
+
+      for (let i = 0; i < entryCount; i++) {
+        const entryOffset = gpsStart + 2 + i * 12;
+        const tag = littleEndian
+          ? view.getUint16(entryOffset, true)
+          : view.getUint16(entryOffset, false);
+        const type = littleEndian
+          ? view.getUint16(entryOffset + 2, true)
+          : view.getUint16(entryOffset + 2, false);
+        const count = littleEndian
+          ? view.getUint32(entryOffset + 4, true)
+          : view.getUint32(entryOffset + 4, false);
+        const valueOffset = littleEndian
+          ? view.getUint32(entryOffset + 8, true)
+          : view.getUint32(entryOffset + 8, false);
+
+        const value = readExifValue(
+          view,
+          type,
+          count,
+          valueOffset,
+          tiffStart,
+          littleEndian,
+          entryOffset + 8
+        );
+
+        switch (tag) {
+          case 1: // GPSLatitudeRef
+            latRef = value || "";
+            break;
+          case 2: // GPSLatitude
+            latitude = value || "";
+            break;
+          case 3: // GPSLongitudeRef
+            lonRef = value || "";
+            break;
+          case 4: // GPSLongitude
+            longitude = value || "";
+            break;
+        }
+      }
+
+      if (latitude && longitude) {
+        metadata.push({
+          name: "Coordonnées GPS",
+          value: `${latitude} ${latRef}, ${longitude} ${lonRef}`,
+          category: "Localisation",
+          risk: "high",
+          selected: true,
+        });
+      }
+    } catch (error) {
+      console.error("Erreur parsing GPS:", error);
+    }
+
+    return metadata;
+  };
+
+  // Lire une valeur EXIF selon son type
+  const readExifValue = (
+    view: DataView,
+    type: number,
+    count: number,
+    valueOffset: number,
+    tiffStart: number,
+    littleEndian: boolean,
+    entryValueOffset: number
+  ): string | null => {
+    try {
+      const dataSize = getTypeSize(type) * count;
+      const actualOffset =
+        dataSize <= 4 ? entryValueOffset : tiffStart + valueOffset;
+
+      switch (type) {
+        case 2: // ASCII string
+          let str = "";
+          for (let i = 0; i < count - 1; i++) {
+            const char = view.getUint8(actualOffset + i);
+            if (char === 0) break;
+            str += String.fromCharCode(char);
+          }
+          return str;
+
+        case 3: // SHORT
+          if (count === 1) {
+            return littleEndian
+              ? view.getUint16(actualOffset, true).toString()
+              : view.getUint16(actualOffset, false).toString();
+          }
+          break;
+
+        case 4: // LONG
+          if (count === 1) {
+            return littleEndian
+              ? view.getUint32(actualOffset, true).toString()
+              : view.getUint32(actualOffset, false).toString();
+          }
+          break;
+
+        case 5: // RATIONAL
+          if (count === 1) {
+            const numerator = littleEndian
+              ? view.getUint32(actualOffset, true)
+              : view.getUint32(actualOffset, false);
+            const denominator = littleEndian
+              ? view.getUint32(actualOffset + 4, true)
+              : view.getUint32(actualOffset + 4, false);
+            return denominator !== 0
+              ? (numerator / denominator).toString()
+              : numerator.toString();
+          } else if (count === 3) {
+            // Pour les coordonnées GPS (degrés, minutes, secondes)
+            const coords = [];
+            for (let i = 0; i < 3; i++) {
+              const offset = actualOffset + i * 8;
+              const num = littleEndian
+                ? view.getUint32(offset, true)
+                : view.getUint32(offset, false);
+              const den = littleEndian
+                ? view.getUint32(offset + 4, true)
+                : view.getUint32(offset + 4, false);
+              coords.push(den !== 0 ? num / den : num);
+            }
+            return `${coords[0]}° ${coords[1]}' ${coords[2]}"`;
+          }
+          break;
+      }
+    } catch {
+      // Ignore les erreurs de lecture
+    }
+    return null;
+  };
+
+  // Obtenir la taille d'un type EXIF
+  const getTypeSize = (type: number): number => {
+    switch (type) {
+      case 1:
+        return 1; // BYTE
+      case 2:
+        return 1; // ASCII
+      case 3:
+        return 2; // SHORT
+      case 4:
+        return 4; // LONG
+      case 5:
+        return 8; // RATIONAL
+      case 7:
+        return 1; // UNDEFINED
+      case 9:
+        return 4; // SLONG
+      case 10:
+        return 8; // SRATIONAL
+      default:
+        return 1;
+    }
+  };
+
+  // Obtenir les informations d'un tag EXIF
+  const getExifTagInfo = (
+    tag: number
+  ): {
+    name: string;
+    category: string;
+    risk: "high" | "medium" | "low";
+  } | null => {
+    const tags: Record<
+      number,
+      { name: string; category: string; risk: "high" | "medium" | "low" }
+    > = {
+      0x010f: {
+        name: "Fabricant de l'appareil",
+        category: "Appareil",
+        risk: "medium",
+      },
+      0x0110: {
+        name: "Modèle de l'appareil",
+        category: "Appareil",
+        risk: "medium",
+      },
+      0x0112: { name: "Orientation", category: "Image", risk: "low" },
+      0x011a: { name: "Résolution X", category: "Image", risk: "low" },
+      0x011b: { name: "Résolution Y", category: "Image", risk: "low" },
+      0x0131: { name: "Logiciel", category: "Logiciel", risk: "medium" },
+      0x0132: { name: "Date et heure", category: "Temps", risk: "high" },
+      0x013b: { name: "Artiste/Auteur", category: "Personnel", risk: "high" },
+      0x8298: { name: "Copyright", category: "Personnel", risk: "high" },
+      0x829a: { name: "Temps d'exposition", category: "Photo", risk: "low" },
+      0x829d: { name: "Nombre F", category: "Photo", risk: "low" },
+      0x8827: { name: "Sensibilité ISO", category: "Photo", risk: "low" },
+      0x9003: {
+        name: "Date de prise de vue originale",
+        category: "Temps",
+        risk: "high",
+      },
+      0x9004: { name: "Date de numérisation", category: "Temps", risk: "high" },
+      0x9286: {
+        name: "Commentaires utilisateur",
+        category: "Personnel",
+        risk: "high",
+      },
+      0xa002: { name: "Largeur de l'image", category: "Image", risk: "low" },
+      0xa003: { name: "Hauteur de l'image", category: "Image", risk: "low" },
+      0xa40a: { name: "Netteté", category: "Photo", risk: "low" },
+      0xa40c: {
+        name: "Mode de balance des blancs",
+        category: "Photo",
+        risk: "low",
+      },
+    };
+
+    return tags[tag] || null;
+  };
+
+  // Extraction des métadonnées PNG
+  const extractPngMetadata = (view: DataView): Metadata[] => {
+    const metadata: Metadata[] = [];
+    let offset = 8; // Ignorer la signature PNG
+
+    try {
+      while (offset < view.byteLength) {
+        const chunkLength = view.getUint32(offset);
+        const chunkType = String.fromCharCode(
+          view.getUint8(offset + 4),
+          view.getUint8(offset + 5),
+          view.getUint8(offset + 6),
+          view.getUint8(offset + 7)
+        );
+
+        if (
+          chunkType === "tEXt" ||
+          chunkType === "iTXt" ||
+          chunkType === "zTXt"
+        ) {
+          const chunkData = new Uint8Array(
+            view.buffer,
+            view.byteOffset + offset + 8,
+            chunkLength
+          );
+          const textData = new TextDecoder().decode(chunkData);
+          const nullIndex = textData.indexOf("\0");
+
+          if (nullIndex > 0) {
+            const keyword = textData.substring(0, nullIndex);
+            const value = textData.substring(nullIndex + 1);
+
+            if (keyword && value) {
+              metadata.push({
+                name: `PNG ${keyword}`,
+                value: value,
+                category:
+                  keyword.toLowerCase().includes("author") ||
+                  keyword.toLowerCase().includes("artist")
+                    ? "Personnel"
+                    : "Métadonnées",
+                risk:
+                  keyword.toLowerCase().includes("author") ||
+                  keyword.toLowerCase().includes("artist") ||
+                  keyword.toLowerCase().includes("comment")
+                    ? "high"
+                    : "medium",
+                selected: true,
+              });
+            }
+          }
+        }
+
+        offset += 8 + chunkLength + 4; // 8 bytes header + data + 4 bytes CRC
+
+        if (chunkType === "IEND") break;
+      }
+    } catch (error) {
+      console.error("Erreur extraction PNG:", error);
+    }
+
+    return metadata;
   };
 
   const extractPDFMetadata = async (file: File): Promise<Metadata[]> => {
@@ -575,6 +1114,7 @@ export default function MetadataCleaner() {
       };
 
       img.onerror = () => resolve(file);
+      img.alt = "";
       img.src = URL.createObjectURL(file);
     });
   };
@@ -617,6 +1157,8 @@ export default function MetadataCleaner() {
             pdfDoc.setKeywords([]);
             break;
           case "Date de création":
+            // On ne peut pas vraiment supprimer la date de création
+            // mais on peut la réinitialiser
             try {
               pdfDoc.setCreationDate(new Date(0));
             } catch {
@@ -639,7 +1181,9 @@ export default function MetadataCleaner() {
         addDefaultPage: false,
       });
 
-      return new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+      return new Blob([pdfBytes.buffer], {
+        type: "application/pdf",
+      });
     } catch (error) {
       console.error("Erreur lors du nettoyage PDF avec pdf-lib:", error);
 
