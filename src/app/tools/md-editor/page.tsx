@@ -286,7 +286,9 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
     if ((file && file.type === "text/markdown") || file.name.endsWith(".md")) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setInputText(e.target.result);
+        if (typeof e.target.result === "string") {
+          setInputText(e.target.result);
+        }
       };
       reader.readAsText(file);
     }
@@ -563,7 +565,7 @@ function exemple() {
           <h3 className="font-bold mb-2">Import/Export facile</h3>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
             Importez vos fichiers .md existants et exportez vos créations pour
-            les utiliser dans d'autres applications.
+            les utiliser dans d&#39;autres applications.
           </p>
         </div>
         <div className="p-5 border rounded-lg">
