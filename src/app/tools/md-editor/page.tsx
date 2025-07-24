@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   ChevronRight,
   Copy,
@@ -10,22 +11,6 @@ import {
   Eye,
   Edit3,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 export default function MarkdownEditor() {
   const [inputText, setInputText] =
@@ -77,13 +62,13 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
       '<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-md overflow-x-auto mb-4 font-mono text-sm"><code>$2</code></pre>'
     );
 
-    let lines = html.split("\n");
-    let result = [];
+    const lines = html.split("\n");
+    const result = [];
     let inList = false;
     let listItems = [];
 
     for (let i = 0; i < lines.length; i++) {
-      let line = lines[i];
+      const line = lines[i];
       let processedLine = line;
 
       if (line.match(/^### /)) {
@@ -294,27 +279,20 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Accueil</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator>
-            <ChevronRight className="h-4 w-4" />
-          </BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/tools">Outils</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator>
-            <ChevronRight className="h-4 w-4" />
-          </BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/tools/markdown-editor">
-              Éditeur Markdown
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      {/* Breadcrumb */}
+      <nav className="mb-6">
+        <Link href="/" className="hover:text-gray-700">
+          Accueil
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <a href="/tools" className="hover:text-gray-700">
+          Outils
+        </a>
+        <ChevronRight className="h-4 w-4" />
+        <span className="text-gray-900 dark:text-gray-100">
+          Éditeur Markdown
+        </span>
+      </nav>
 
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Éditeur/Visionneur Markdown</h1>
@@ -327,35 +305,42 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
       {/* Mode selector */}
       <div className="flex justify-center mb-6">
         <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-          <Button
-            variant={viewMode === "editor" ? "default" : "ghost"}
-            size="sm"
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              viewMode === "editor"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            }`}
             onClick={() => setViewMode("editor")}
-            className="mr-1"
           >
-            <Edit3 className="h-4 w-4 mr-2" />
+            <Edit3 className="h-4 w-4 mr-2 inline" />
             Éditeur
-          </Button>
-          <Button
-            variant={viewMode === "split" ? "default" : "ghost"}
-            size="sm"
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              viewMode === "split"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            }`}
             onClick={() => setViewMode("split")}
-            className="mr-1"
           >
             Diviser
-          </Button>
-          <Button
-            variant={viewMode === "preview" ? "default" : "ghost"}
-            size="sm"
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              viewMode === "preview"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            }`}
             onClick={() => setViewMode("preview")}
           >
-            <Eye className="h-4 w-4 mr-2" />
+            <Eye className="h-4 w-4 mr-2 inline" />
             Aperçu
-          </Button>
+          </button>
         </div>
       </div>
 
-      <Card className="p-6 mb-8 border-2">
+      <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-8">
         {/* Toolbar */}
         <div className="flex flex-wrap gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex gap-2">
@@ -366,52 +351,47 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
               className="hidden"
               id="file-upload"
             />
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               onClick={() => document.getElementById("file-upload").click()}
             >
-              <Upload className="h-4 w-4 mr-2" />
+              <Upload className="h-4 w-4 mr-2 inline" />
               Importer .md
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+            </button>
+            <button
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               onClick={downloadMarkdown}
               disabled={!inputText}
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="h-4 w-4 mr-2 inline" />
               Télécharger
-            </Button>
+            </button>
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               onClick={copyToClipboard}
               disabled={!inputText}
             >
               {copied ? (
                 <>
-                  <Check className="h-4 w-4 mr-2" />
+                  <Check className="h-4 w-4 mr-2 inline" />
                   Copié!
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Copy className="h-4 w-4 mr-2 inline" />
                   Copier
                 </>
               )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+            </button>
+            <button
+              className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               onClick={clearEditor}
-              className="text-gray-500"
             >
               Effacer
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -430,12 +410,12 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
               >
                 Éditeur Markdown
               </label>
-              <Textarea
+              <textarea
                 id="markdown-input"
                 placeholder="Tapez votre Markdown ici..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="min-h-96 font-mono text-sm"
+                className="w-full min-h-96 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 font-mono text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           )}
@@ -451,122 +431,129 @@ Commencez à taper dans l'éditeur à gauche pour voir la prévisualisation !`);
             </div>
           )}
         </div>
-      </Card>
+      </div>
 
-      <Accordion type="single" collapsible className="mb-8">
+      {/* FAQ */}
+      <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6">Guide Markdown</h2>
 
-        <AccordionItem value="item-1">
-          <AccordionTrigger>
-            Comment formater du texte en Markdown ?
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-2">
-              <p>
-                <strong>Gras :</strong> <code>**texte en gras**</code>
-              </p>
-              <p>
-                <strong>Italique :</strong> <code>*texte en italique*</code>
-              </p>
-              <p>
-                <strong>Code en ligne :</strong> <code>`mon code`</code>
-              </p>
-              <p>
-                <strong>Liens :</strong>{" "}
-                <code>[Texte du lien](https://example.com)</code>
-              </p>
-              <p>
-                <strong>Images :</strong>{" "}
-                <code>![Texte alternatif](url-image.jpg)</code>
-              </p>
+        <div className="space-y-4">
+          <details className="border border-gray-200 dark:border-gray-700 rounded-lg">
+            <summary className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 font-medium">
+              Comment formater du texte en Markdown ?
+            </summary>
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="space-y-2">
+                <p>
+                  <strong>Gras :</strong> <code>**texte en gras**</code>
+                </p>
+                <p>
+                  <strong>Italique :</strong> <code>*texte en italique*</code>
+                </p>
+                <p>
+                  <strong>Code en ligne :</strong> <code>`mon code`</code>
+                </p>
+                <p>
+                  <strong>Liens :</strong>{" "}
+                  <code>[Texte du lien](https://example.com)</code>
+                </p>
+                <p>
+                  <strong>Images :</strong>{" "}
+                  <code>![Texte alternatif](url-image.jpg)</code>
+                </p>
+              </div>
             </div>
-          </AccordionContent>
-        </AccordionItem>
+          </details>
 
-        <AccordionItem value="item-2">
-          <AccordionTrigger>
-            Comment créer des titres et listes ?
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-2">
-              <p>
-                <strong>Titres :</strong>
-              </p>
-              <p>
-                <code># Titre principal</code>
-              </p>
-              <p>
-                <code>## Sous-titre</code>
-              </p>
-              <p>
-                <code>### Titre de section</code>
-              </p>
-              <p className="mt-4">
-                <strong>Listes à puces :</strong>
-              </p>
-              <p>
-                <code>- Premier élément</code>
-              </p>
-              <p>
-                <code>- Deuxième élément</code>
-              </p>
-              <p className="mt-4">
-                <strong>Citations :</strong>
-              </p>
-              <p>
-                <code>&gt; Ceci est une citation</code>
-              </p>
+          <details className="border border-gray-200 dark:border-gray-700 rounded-lg">
+            <summary className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 font-medium">
+              Comment créer des titres et listes ?
+            </summary>
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="space-y-2">
+                <p>
+                  <strong>Titres :</strong>
+                </p>
+                <p>
+                  <code># Titre principal</code>
+                </p>
+                <p>
+                  <code>## Sous-titre</code>
+                </p>
+                <p>
+                  <code>### Titre de section</code>
+                </p>
+                <p className="mt-4">
+                  <strong>Listes à puces :</strong>
+                </p>
+                <p>
+                  <code>- Premier élément</code>
+                </p>
+                <p>
+                  <code>- Deuxième élément</code>
+                </p>
+                <p className="mt-4">
+                  <strong>Citations :</strong>
+                </p>
+                <p>
+                  <code>&gt; Ceci est une citation</code>
+                </p>
+              </div>
             </div>
-          </AccordionContent>
-        </AccordionItem>
+          </details>
 
-        <AccordionItem value="item-3">
-          <AccordionTrigger>Comment créer des blocs de code ?</AccordionTrigger>
-          <AccordionContent>
-            <p>Pour créer un bloc de code, utilisez trois backticks (```) :</p>
-            <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2">
-              {`\`\`\`javascript
+          <details className="border border-gray-200 dark:border-gray-700 rounded-lg">
+            <summary className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 font-medium">
+              Comment créer des blocs de code ?
+            </summary>
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <p>
+                Pour créer un bloc de code, utilisez trois backticks (```) :
+              </p>
+              <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2">
+                {`\`\`\`javascript
 function exemple() {
   console.log("Hello World!");
 }
 \`\`\``}
-            </pre>
-            <p className="mt-2">
-              Vous pouvez spécifier le langage après les premiers backticks pour
-              la coloration syntaxique.
-            </p>
-          </AccordionContent>
-        </AccordionItem>
+              </pre>
+              <p className="mt-2">
+                Vous pouvez spécifier le langage après les premiers backticks
+                pour la coloration syntaxique.
+              </p>
+            </div>
+          </details>
 
-        <AccordionItem value="item-4">
-          <AccordionTrigger>
-            Est-ce que mes documents sont sécurisés ?
-          </AccordionTrigger>
-          <AccordionContent>
-            Absolument. Tout le traitement se fait directement dans votre
-            navigateur. Vos documents ne sont jamais envoyés à nos serveurs ni
-            stockés, garantissant ainsi une confidentialité totale. Vous pouvez
-            importer et exporter vos fichiers .md en toute sécurité.
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+          <details className="border border-gray-200 dark:border-gray-700 rounded-lg">
+            <summary className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 font-medium">
+              Est-ce que mes documents sont sécurisés ?
+            </summary>
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              Absolument. Tout le traitement se fait directement dans votre
+              navigateur. Vos documents ne sont jamais envoyés à nos serveurs ni
+              stockés, garantissant ainsi une confidentialité totale. Vous
+              pouvez importer et exporter vos fichiers .md en toute sécurité.
+            </div>
+          </details>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="p-5 border rounded-lg">
+        <div className="p-5 border border-gray-200 dark:border-gray-700 rounded-lg">
           <h3 className="font-bold mb-2">Aperçu en temps réel</h3>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
             Visualisez instantanément le rendu de votre Markdown pendant que
             vous tapez, avec support complet de la syntaxe.
           </p>
         </div>
-        <div className="p-5 border rounded-lg">
+        <div className="p-5 border border-gray-200 dark:border-gray-700 rounded-lg">
           <h3 className="font-bold mb-2">Import/Export facile</h3>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
             Importez vos fichiers .md existants et exportez vos créations pour
             les utiliser dans d&#39;autres applications.
           </p>
         </div>
-        <div className="p-5 border rounded-lg">
+        <div className="p-5 border border-gray-200 dark:border-gray-700 rounded-lg">
           <h3 className="font-bold mb-2">Interface adaptative</h3>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
             Passez facilement entre les modes éditeur, aperçu ou vue divisée
