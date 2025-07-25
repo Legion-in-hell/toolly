@@ -2,8 +2,35 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  Search,
+  ChevronDown,
+  FileText,
+  Image,
+  Shield,
+  Type,
+  Table,
+  QrCode,
+  CheckCircle,
+  Code,
+  CaseSensitive,
+  Key,
+  Clock,
+  Calculator,
+  Braces,
+  Globe,
+  DollarSign,
+  Link as LinkIcon,
+  Quote,
+  GitMerge,
+  GitCompare,
+  Headphones,
+  Music,
+  UserX,
+  Hash,
+} from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -39,7 +66,19 @@ const categories = [
   { id: "misc", name: "Divers" },
 ];
 
-const tools = [
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  popular: boolean;
+  comingSoon: boolean;
+  demo: boolean;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const tools: Tool[] = [
   {
     id: "pdf-to-word",
     name: "PDF vers Word",
@@ -49,7 +88,7 @@ const tools = [
     comingSoon: false,
     demo: true,
     path: "/tools/pdf-to-word",
-    icon: "📄",
+    icon: FileText,
   },
   {
     id: "image-compressor",
@@ -61,7 +100,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/image-compressor",
-    icon: "🖼️",
+    icon: Image,
   },
   {
     id: "metadata-cleaner",
@@ -73,7 +112,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/metadata-cleaner",
-    icon: "🔒",
+    icon: Shield,
   },
   {
     id: "text-simplifier",
@@ -84,7 +123,7 @@ const tools = [
     comingSoon: false,
     demo: true,
     path: "/tools/text-simplifier",
-    icon: "📝",
+    icon: Type,
   },
   {
     id: "table-extractor",
@@ -95,7 +134,7 @@ const tools = [
     comingSoon: false,
     demo: true,
     path: "/tools/table-extractor",
-    icon: "📊",
+    icon: Table,
   },
   {
     id: "file-merger",
@@ -106,7 +145,7 @@ const tools = [
     comingSoon: true,
     demo: false,
     path: "/tools/file-merger",
-    icon: "🔄",
+    icon: GitMerge,
   },
   {
     id: "audio-converter",
@@ -118,7 +157,7 @@ const tools = [
     comingSoon: true,
     demo: false,
     path: "/tools/audio-converter",
-    icon: "🎵",
+    icon: Music,
   },
   {
     id: "doc-anonymizer",
@@ -130,7 +169,7 @@ const tools = [
     comingSoon: true,
     demo: false,
     path: "/tools/doc-anonymizer",
-    icon: "👤",
+    icon: UserX,
   },
   {
     id: "qr-generator",
@@ -139,9 +178,9 @@ const tools = [
     category: "misc",
     popular: true,
     comingSoon: false,
-    demo: true,
+    demo: false, // ✨ Plus une démo !
     path: "/tools/qr-generator",
-    icon: "📱",
+    icon: QrCode,
   },
   {
     id: "file-comparator",
@@ -152,7 +191,7 @@ const tools = [
     comingSoon: true,
     demo: false,
     path: "/tools/file-comparator",
-    icon: "🔍",
+    icon: GitCompare,
   },
   {
     id: "audio-enhancer",
@@ -164,7 +203,7 @@ const tools = [
     comingSoon: true,
     demo: false,
     path: "/tools/audio-enhancer",
-    icon: "🎧",
+    icon: Headphones,
   },
   {
     id: "grammar-checker",
@@ -176,7 +215,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/grammar-checker",
-    icon: "✓",
+    icon: CheckCircle,
   },
   {
     id: "translator",
@@ -187,7 +226,7 @@ const tools = [
     comingSoon: true,
     demo: false,
     path: "/tools/translator",
-    icon: "🌐",
+    icon: Globe,
   },
   {
     id: "code-indenter",
@@ -198,7 +237,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/code-indenter",
-    icon: "⌨️",
+    icon: Code,
   },
   {
     id: "case-converter",
@@ -210,7 +249,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/casse",
-    icon: "Aa",
+    icon: CaseSensitive,
   },
   {
     id: "character-escaper",
@@ -222,7 +261,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/character-escaper",
-    icon: "\\",
+    icon: Quote, // ✨ Remplace Backslash qui n'existe pas
   },
   {
     id: "password-generator",
@@ -233,7 +272,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/password-generator",
-    icon: "A*#",
+    icon: Key,
   },
   {
     id: "world-clock",
@@ -244,7 +283,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/world-clock",
-    icon: "🕒",
+    icon: Clock,
   },
   {
     id: "unit-converter",
@@ -255,7 +294,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/unit-converter",
-    icon: "🔢",
+    icon: Calculator,
   },
   {
     id: "json-formatter",
@@ -266,7 +305,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/json-formatter",
-    icon: "JSON",
+    icon: Braces,
   },
   {
     id: "markdown-editor",
@@ -277,7 +316,7 @@ const tools = [
     comingSoon: false,
     demo: false,
     path: "/tools/md-editor",
-    icon: "Markdown",
+    icon: Hash,
   },
   {
     id: "currency-converter",
@@ -288,7 +327,7 @@ const tools = [
     comingSoon: true,
     demo: false,
     path: "/tools/currency-converter",
-    icon: "💱",
+    icon: DollarSign,
   },
   {
     id: "url-shortener",
@@ -299,7 +338,7 @@ const tools = [
     comingSoon: false,
     demo: true,
     path: "/tools/url-shortener",
-    icon: "🔗",
+    icon: LinkIcon,
   },
 ];
 
@@ -374,46 +413,50 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tools
               .filter((tool) => tool.popular && !tool.comingSoon)
-              .map((tool) => (
-                <Link href={tool.path} key={tool.id}>
-                  <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200 dark:hover:border-blue-800">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{tool.icon}</span>
-                          <CardTitle>{tool.name}</CardTitle>
+              .map((tool) => {
+                const IconComponent = tool.icon;
+                return (
+                  <Link href={tool.path} key={tool.id}>
+                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200 dark:hover:border-blue-800">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <IconComponent className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                            <CardTitle>{tool.name}</CardTitle>
+                          </div>
+                          {tool.demo && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 cursor-help"
+                                  >
+                                    Démo
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>
+                                    Version de démonstration uniquement
+                                    visuelle, sans fonctionnalités complètes.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </div>
-                        {tool.demo && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge
-                                  variant="outline"
-                                  className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 cursor-help"
-                                >
-                                  Démo
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  Version de démonstration uniquement visuelle,
-                                  sans fonctionnalités complètes.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription>{tool.description}</CardDescription>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription>{tool.description}</CardDescription>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
           </div>
         </section>
       )}
+
       <section>
         <h2 className="text-2xl font-bold mb-6">Tous nos outils</h2>
 
@@ -463,71 +506,80 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTools.length > 0 ? (
-            filteredTools.map((tool) => (
-              <Link href={tool.comingSoon ? "#" : tool.path} key={tool.id}>
-                <Card
-                  className={`h-full transition-all ${
-                    tool.comingSoon
-                      ? "opacity-60"
-                      : "hover:shadow-lg cursor-pointer"
-                  }`}
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{tool.icon}</span>
-                        <CardTitle className="text-lg">{tool.name}</CardTitle>
+            filteredTools.map((tool) => {
+              const IconComponent = tool.icon;
+              return (
+                <Link href={tool.comingSoon ? "#" : tool.path} key={tool.id}>
+                  <Card
+                    className={`h-full transition-all ${
+                      tool.comingSoon
+                        ? "opacity-60"
+                        : "hover:shadow-lg cursor-pointer"
+                    }`}
+                  >
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <IconComponent
+                            className={`h-6 w-6 ${
+                              tool.comingSoon
+                                ? "text-gray-400"
+                                : "text-blue-600 dark:text-blue-400"
+                            }`}
+                          />
+                          <CardTitle className="text-lg">{tool.name}</CardTitle>
+                        </div>
+                        <div className="flex gap-2">
+                          {tool.comingSoon && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 cursor-help"
+                                  >
+                                    Bientôt
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>
+                                    Outil en cours de développement, disponible
+                                    prochainement.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                          {tool.demo && !tool.comingSoon && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 cursor-help"
+                                  >
+                                    Démo
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>
+                                    Version de démonstration uniquement
+                                    visuelle, sans fonctionnalités complètes.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        {tool.comingSoon && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge
-                                  variant="outline"
-                                  className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 cursor-help"
-                                >
-                                  Bientôt
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  Outil en cours de développement, disponible
-                                  prochainement.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                        {tool.demo && !tool.comingSoon && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge
-                                  variant="outline"
-                                  className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 cursor-help"
-                                >
-                                  Démo
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  Version de démonstration uniquement visuelle,
-                                  sans fonctionnalités complètes.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription>{tool.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription>{tool.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })
           ) : (
             <div className="col-span-3 text-center py-12">
               <p className="text-gray-500 dark:text-gray-400">
