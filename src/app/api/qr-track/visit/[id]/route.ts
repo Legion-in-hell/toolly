@@ -43,11 +43,13 @@ const saveTrackedQRs = (qrs: Record<string, TrackedQR>) => {
   }
 };
 
+// Correction pour Next.js 15 : params est maintenant une Promise
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  // Await des paramètres
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
