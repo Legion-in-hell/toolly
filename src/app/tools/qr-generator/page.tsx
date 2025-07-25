@@ -1,131 +1,39 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   ChevronRight,
-  Link as LinkIcon,
+  Link,
+  RefreshCw,
   Phone,
   Mail,
   MapPin,
   Wifi,
   Info,
   Calendar,
+  Download,
+  Copy,
+  Eye,
+  TrendingUp,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+
+// Import des types et utilitaires
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Input } from "@/components/ui/input";
+  QRType,
+  HistoryItem,
+  GeneratedQRCode,
+  QRFormData,
+} from "../../../types/qr";
+import { useQRStats } from "../../../hooks/useQRStats";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
+  generateQRCode,
+  generateQRContent,
+  createTrackedQR,
+} from "../../../utils/qrGenerator";
+import { QRFormFields } from "../../../components/QRFormFields";
 
-interface QRCodeOptions {
-  size?: number;
-  errorCorrection?: "L" | "M" | "Q" | "H";
-  backgroundColor?: string;
-  foregroundColor?: string;
-  logo?: string | null;
-  margin?: number;
-}
-
-const generateQRCode = (text: string, options: QRCodeOptions = {}) => {
-  const defaultOptions = {
-    size: 200,
-    errorCorrection: "M",
-    backgroundColor: "#FFFFFF",
-    foregroundColor: "#000000",
-    logo: null,
-    margin: 4,
-  };
-
-  const mergedOptions = { ...defaultOptions, ...options };
-
-  return new Promise<{
-    dataURL: string;
-    options: QRCodeOptions;
-    text: string;
-    type: string;
-  }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        dataURL: `data:image/svg+xml;base64,${btoa(`
-          <svg width="${mergedOptions.size}" height="${
-          mergedOptions.size
-        }" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100%" height="100%" fill="${
-              mergedOptions.backgroundColor
-            }"/>
-            <g fill="${mergedOptions.foregroundColor}">
-              <rect x="20%" y="20%" width="10%" height="10%"/>
-              <rect x="40%" y="20%" width="10%" height="10%"/>
-              <rect x="60%" y="20%" width="10%" height="10%"/>
-              <rect x="20%" y="40%" width="10%" height="10%"/>
-              <rect x="60%" y="40%" width="10%" height="10%"/>
-              <rect x="20%" y="60%" width="10%" height="10%"/>
-              <rect x="40%" y="60%" width="10%" height="10%"/>
-              <rect x="60%" y="60%" width="10%" height="10%"/>
-              <rect x="20%" y="20%" width="20%" height="5%"/>
-              <rect x="20%" y="20%" width="5%" height="20%"/>
-              <rect x="60%" y="20%" width="20%" height="5%"/>
-              <rect x="75%" y="20%" width="5%" height="20%"/>
-              <rect x="20%" y="60%" width="5%" height="20%"/>
-              <rect x="20%" y="75%" width="20%" height="5%"/>
-              <rect x="35%" y="35%" width="30%" height="5%"/>
-              <rect x="35%" y="45%" width="30%" height="5%"/>
-              <rect x="35%" y="55%" width="30%" height="5%"/>
-            </g>
-            ${
-              mergedOptions.logo
-                ? `<circle cx="${mergedOptions.size / 2}" cy="${
-                    mergedOptions.size / 2
-                  }" r="${
-                    mergedOptions.size / 10
-                  }" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>`
-                : ""
-            }
-          </svg>
-        `)}`,
-        options: {
-          ...mergedOptions,
-          errorCorrection: mergedOptions.errorCorrection as
-            | "L"
-            | "M"
-            | "Q"
-            | "H",
-        },
-        text,
-        type: "svg",
-      });
-    }, 200);
-  });
-};
-
-const qrTypes = [
-  { id: "url", name: "URL / Site web", icon: <LinkIcon className="h-4 w-4" /> },
+const qrTypes: QRType[] = [
+  { id: "url", name: "URL / Site web", icon: <Link className="h-4 w-4" /> },
   { id: "text", name: "Texte libre", icon: <Info className="h-4 w-4" /> },
   { id: "email", name: "Email", icon: <Mail className="h-4 w-4" /> },
   { id: "phone", name: "Téléphone", icon: <Phone className="h-4 w-4" /> },
@@ -141,50 +49,73 @@ const qrTypes = [
 ];
 
 export default function QRGenerator() {
+  // États principaux
   const [qrType, setQrType] = useState("url");
-  const [text, setText] = useState("https://exemple.com");
+  const [text, setText] = useState("https://toolly.fr");
   const [size, setSize] = useState(200);
-  const [backgroundColor] = useState("#FFFFFF");
+  const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
   const [foregroundColor, setForegroundColor] = useState("#000000");
   const [errorCorrection, setErrorCorrection] = useState<"L" | "M" | "Q" | "H">(
     "M"
   );
-  const [withLogo, setWithLogo] = useState(false);
   const [margin, setMargin] = useState(4);
-  const [generatedQR, setGeneratedQR] = useState(null);
+  const [generatedQR, setGeneratedQR] = useState<GeneratedQRCode | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("content");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [isLibraryLoaded, setIsLibraryLoaded] = useState(false);
+  const [enableTracking, setEnableTracking] = useState(true);
 
-  const [email, setEmail] = useState({ address: "", subject: "", body: "" });
-  const [phone, setPhone] = useState("");
-  const [sms, setSms] = useState({ number: "", message: "" });
-  const [vcard, setVcard] = useState({
-    firstName: "",
-    lastName: "",
+  // Données des formulaires
+  const [formData, setFormData] = useState<QRFormData>({
+    email: { address: "", subject: "", body: "" },
     phone: "",
-    email: "",
-    website: "",
-    company: "",
-    title: "",
-    address: "",
-  });
-  const [location, setLocation] = useState({ lat: "", lon: "", name: "" });
-  const [wifi, setWifi] = useState({
-    ssid: "",
-    password: "",
-    encryption: "WPA",
-    hidden: false,
-  });
-  const [event, setEvent] = useState({
-    title: "",
-    location: "",
-    startDate: "",
-    endDate: "",
-    description: "",
+    sms: { number: "", message: "" },
+    vcard: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
+      website: "",
+      company: "",
+      title: "",
+      address: "",
+    },
+    location: { lat: "", lon: "", name: "" },
+    wifi: {
+      ssid: "",
+      password: "",
+      encryption: "WPA",
+      hidden: false,
+    },
+    event: {
+      title: "",
+      location: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+    },
   });
 
+  // Hook pour les statistiques
+  const { qrStats, loadingStats, loadViewStats } = useQRStats(history);
+
+  // Charger la librairie QRCode
+  useEffect(() => {
+    if (!window.QRCode) {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+      script.async = true;
+      script.onload = () => setIsLibraryLoaded(true);
+      script.onerror = () => console.error("Failed to load QRCode library");
+      document.head.appendChild(script);
+    } else {
+      setIsLibraryLoaded(true);
+    }
+  }, []);
+
+  // Charger l'historique depuis localStorage
   useEffect(() => {
     const savedHistory = localStorage.getItem("qrCodeHistory");
     if (savedHistory) {
@@ -196,873 +127,581 @@ export default function QRGenerator() {
     }
   }, []);
 
+  // Sauvegarder l'historique dans localStorage
   useEffect(() => {
     if (history.length > 0) {
       localStorage.setItem("qrCodeHistory", JSON.stringify(history));
     }
   }, [history]);
 
-  const handleGenerateQR = async () => {
+  // Fonction pour générer le QR code
+  const handleGenerateQR = async (): Promise<void> => {
+    if (!isLibraryLoaded) {
+      alert(
+        "La librairie QR Code est en cours de chargement, veuillez patienter..."
+      );
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
-      let qrContent = "";
+      // Générer le contenu QR
+      const qrContent = generateQRContent(qrType, text, formData);
 
-      switch (qrType) {
-        case "url":
-          qrContent = text;
-          break;
-        case "text":
-          qrContent = text;
-          break;
-        case "email":
-          qrContent = `mailto:${email.address}?subject=${encodeURIComponent(
-            email.subject
-          )}&body=${encodeURIComponent(email.body)}`;
-          break;
-        case "phone":
-          qrContent = `tel:${phone}`;
-          break;
-        case "sms":
-          qrContent = `smsto:${sms.number}:${sms.message}`;
-          break;
-        case "vcard":
-          qrContent = `BEGIN:VCARD
-VERSION:3.0
-N:${vcard.lastName};${vcard.firstName};;;
-FN:${vcard.firstName} ${vcard.lastName}
-ORG:${vcard.company}
-TITLE:${vcard.title}
-TEL;TYPE=WORK,VOICE:${vcard.phone}
-EMAIL:${vcard.email}
-URL:${vcard.website}
-ADR;TYPE=WORK:;;${vcard.address};;;;
-END:VCARD`;
-          break;
-        case "location":
-          qrContent = `geo:${location.lat},${
-            location.lon
-          }?q=${encodeURIComponent(location.name)}`;
-          break;
-        case "wifi":
-          qrContent = `WIFI:S:${wifi.ssid};T:${wifi.encryption};P:${
-            wifi.password
-          };H:${wifi.hidden ? "true" : "false"};;`;
-          break;
-        case "event":
-          const startDate =
-            new Date(event.startDate)
-              .toISOString()
-              .replace(/[-:]/g, "")
-              .replace(/\.\d+/g, "") + "Z";
-          const endDate =
-            new Date(event.endDate)
-              .toISOString()
-              .replace(/[-:]/g, "")
-              .replace(/\.\d+/g, "") + "Z";
-          qrContent = `BEGIN:VEVENT
-SUMMARY:${event.title.replace(/([,;])/g, "\\$1")}
-LOCATION:${event.location}
-DTSTART:${startDate}
-DTEND:${endDate}
-DESCRIPTION:${event.description}
-END:VEVENT`;
-          break;
-        default:
-          qrContent = text;
-      }
+      // Créer un QR code tracké si activé
+      const { trackingContent, trackingId, originalContent } =
+        await createTrackedQR(qrContent, qrType, enableTracking);
 
-      const qrCode = await generateQRCode(qrContent, {
+      // Générer le QR code visuel
+      const qrCode = await generateQRCode(trackingContent, {
         size,
         errorCorrection,
         backgroundColor,
         foregroundColor,
-        logo: withLogo ? "logo.png" : null,
         margin,
       });
 
       setGeneratedQR(qrCode);
 
+      // Ajouter à l'historique
       if (qrContent.trim()) {
-        const newHistoryItem = {
+        const newHistoryItem: HistoryItem = {
           id: Date.now().toString(),
-          content: qrContent,
+          trackingId: trackingId || undefined,
+          content: trackingContent,
+          originalContent: originalContent || qrContent,
           type: qrType,
           date: new Date().toISOString(),
           preview: qrCode.dataURL,
+          views: 0,
         };
-        setHistory([newHistoryItem, ...history.slice(0, 9)]);
+        setHistory((prev) => [newHistoryItem, ...prev.slice(0, 9)]);
       }
 
       setActiveTab("download");
     } catch (error) {
       console.error("Erreur lors de la génération du QR code:", error);
+      alert("Erreur lors de la génération du QR code. Veuillez réessayer.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const loadFromHistory = (item) => {
+  // Charger un QR depuis l'historique
+  const loadFromHistory = (item: HistoryItem) => {
     setQrType(item.type);
-    setText(item.content);
+    setText(item.originalContent || item.content);
     setGeneratedQR({
       dataURL: item.preview,
       text: item.content,
-      type: "svg",
+      canvas: null,
+      options: {
+        errorCorrectionLevel: "M",
+        type: "image/png",
+        quality: 0.92,
+        margin: 4,
+        color: { dark: "#000000", light: "#FFFFFF" },
+        width: 200,
+        height: 200,
+      },
     });
     setActiveTab("download");
   };
 
+  // Copier l'image QR
   const copyQRImage = async () => {
     try {
-      if (generatedQR) {
+      if (generatedQR?.dataURL && navigator.clipboard) {
+        const response = await fetch(generatedQR.dataURL);
+        const blob = await response.blob();
+
+        await navigator.clipboard.write([
+          new ClipboardItem({ [blob.type]: blob }),
+        ]);
+
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
     } catch (error) {
-      console.error("Erreur lors de la copie de l'image:", error);
+      console.error("Erreur lors de la copie:", error);
+      // Fallback
+      if (navigator.clipboard && generatedQR?.dataURL) {
+        try {
+          await navigator.clipboard.writeText(generatedQR.dataURL);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch (fallbackError) {
+          console.error("Erreur lors de la copie fallback:", fallbackError);
+        }
+      }
     }
   };
 
+  // Télécharger le QR code
   const downloadQRCode = (format = "png") => {
-    if (!generatedQR) return;
+    if (!generatedQR?.dataURL) return;
 
     const link = document.createElement("a");
     link.href = generatedQR.dataURL;
-    link.download = `qrcode_${new Date().getTime()}.${format}`;
+    link.download = `toolly-qrcode-${new Date().getTime()}.${format}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  // Effacer l'historique
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem("qrCodeHistory");
   };
 
-  const renderForm = () => {
-    switch (qrType) {
-      case "url":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="url-input">Adresse web (URL)</Label>
-              <Input
-                id="url-input"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="https://exemple.com"
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      case "text":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="text-input">Texte libre</Label>
-              <Textarea
-                id="text-input"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Saisissez votre texte ici..."
-                className="mt-1 min-h-32"
-              />
-            </div>
-          </div>
-        );
-
-      case "email":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email-address">Adresse email</Label>
-              <Input
-                id="email-address"
-                type="email"
-                value={email.address}
-                onChange={(e) =>
-                  setEmail({ ...email, address: e.target.value })
-                }
-                placeholder="contact@exemple.com"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="email-subject">Sujet (optionnel)</Label>
-              <Input
-                id="email-subject"
-                value={email.subject}
-                onChange={(e) =>
-                  setEmail({ ...email, subject: e.target.value })
-                }
-                placeholder="Objet de l'email"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="email-body">Message (optionnel)</Label>
-              <Textarea
-                id="email-body"
-                value={email.body}
-                onChange={(e) => setEmail({ ...email, body: e.target.value })}
-                placeholder="Contenu de l'email..."
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      case "phone":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="phone-number">Numéro de téléphone</Label>
-              <Input
-                id="phone-number"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+33 1 23 45 67 89"
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      case "sms":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="sms-number">Numéro de téléphone</Label>
-              <Input
-                id="sms-number"
-                type="tel"
-                value={sms.number}
-                onChange={(e) => setSms({ ...sms, number: e.target.value })}
-                placeholder="+33 1 23 45 67 89"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="sms-message">Message (optionnel)</Label>
-              <Textarea
-                id="sms-message"
-                value={sms.message}
-                onChange={(e) => setSms({ ...sms, message: e.target.value })}
-                placeholder="Votre message..."
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      case "vcard":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="vcard-firstname">Prénom</Label>
-                <Input
-                  id="vcard-firstname"
-                  value={vcard.firstName}
-                  onChange={(e) =>
-                    setVcard({ ...vcard, firstName: e.target.value })
-                  }
-                  placeholder="Prénom"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="vcard-lastname">Nom</Label>
-                <Input
-                  id="vcard-lastname"
-                  value={vcard.lastName}
-                  onChange={(e) =>
-                    setVcard({ ...vcard, lastName: e.target.value })
-                  }
-                  placeholder="Nom"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="vcard-phone">Téléphone</Label>
-                <Input
-                  id="vcard-phone"
-                  type="tel"
-                  value={vcard.phone}
-                  onChange={(e) =>
-                    setVcard({ ...vcard, phone: e.target.value })
-                  }
-                  placeholder="+33 1 23 45 67 89"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="vcard-email">Email</Label>
-                <Input
-                  id="vcard-email"
-                  type="email"
-                  value={vcard.email}
-                  onChange={(e) =>
-                    setVcard({ ...vcard, email: e.target.value })
-                  }
-                  placeholder="contact@exemple.com"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="vcard-company">Entreprise (optionnel)</Label>
-                <Input
-                  id="vcard-company"
-                  value={vcard.company}
-                  onChange={(e) =>
-                    setVcard({ ...vcard, company: e.target.value })
-                  }
-                  placeholder="Nom de l'entreprise"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="vcard-title">Fonction (optionnel)</Label>
-                <Input
-                  id="vcard-title"
-                  value={vcard.title}
-                  onChange={(e) =>
-                    setVcard({ ...vcard, title: e.target.value })
-                  }
-                  placeholder="Développeur, Manager, etc."
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="vcard-website">Site web (optionnel)</Label>
-              <Input
-                id="vcard-website"
-                value={vcard.website}
-                onChange={(e) =>
-                  setVcard({ ...vcard, website: e.target.value })
-                }
-                placeholder="https://exemple.com"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="vcard-address">Adresse (optionnel)</Label>
-              <Input
-                id="vcard-address"
-                value={vcard.address}
-                onChange={(e) =>
-                  setVcard({ ...vcard, address: e.target.value })
-                }
-                placeholder="123 rue Exemple, 75000 Paris"
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      case "location":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="location-lat">Latitude</Label>
-                <Input
-                  id="location-lat"
-                  value={location.lat}
-                  onChange={(e) =>
-                    setLocation({ ...location, lat: e.target.value })
-                  }
-                  placeholder="48.8566"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="location-lon">Longitude</Label>
-                <Input
-                  id="location-lon"
-                  value={location.lon}
-                  onChange={(e) =>
-                    setLocation({ ...location, lon: e.target.value })
-                  }
-                  placeholder="2.3522"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="location-name">Nom du lieu (optionnel)</Label>
-              <Input
-                id="location-name"
-                value={location.name}
-                onChange={(e) =>
-                  setLocation({ ...location, name: e.target.value })
-                }
-                placeholder="Tour Eiffel, Paris"
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      case "wifi":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="wifi-ssid">Nom du réseau (SSID)</Label>
-              <Input
-                id="wifi-ssid"
-                value={wifi.ssid}
-                onChange={(e) => setWifi({ ...wifi, ssid: e.target.value })}
-                placeholder="MonWiFi"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="wifi-password">Mot de passe</Label>
-              <Input
-                id="wifi-password"
-                type="password"
-                value={wifi.password}
-                onChange={(e) => setWifi({ ...wifi, password: e.target.value })}
-                placeholder="Mot de passe"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="wifi-encryption">Type de sécurité</Label>
-              <Select
-                value={wifi.encryption}
-                onValueChange={(value) =>
-                  setWifi({ ...wifi, encryption: value })
-                }
-              >
-                <SelectTrigger id="wifi-encryption" className="mt-1">
-                  <SelectValue placeholder="Sélectionner" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="WPA">WPA/WPA2</SelectItem>
-                  <SelectItem value="WEP">WEP</SelectItem>
-                  <SelectItem value="nopass">Aucun</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="wifi-hidden"
-                checked={wifi.hidden}
-                onCheckedChange={(checked) =>
-                  setWifi({ ...wifi, hidden: checked })
-                }
-              />
-              <Label htmlFor="wifi-hidden">Réseau caché</Label>
-            </div>
-          </div>
-        );
-
-      case "event":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="event-title">Titre de l&#39;événement</Label>
-              <Input
-                id="event-title"
-                value={event.title}
-                onChange={(e) => setEvent({ ...event, title: e.target.value })}
-                placeholder="Réunion d'équipe"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="event-location">Lieu (optionnel)</Label>
-              <Input
-                id="event-location"
-                value={event.location}
-                onChange={(e) =>
-                  setEvent({ ...event, location: e.target.value })
-                }
-                placeholder="Salle de conférence, Bureau"
-                className="mt-1"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="event-start">Date et heure de début</Label>
-                <Input
-                  id="event-start"
-                  type="datetime-local"
-                  value={event.startDate || ""}
-                  onChange={(e) =>
-                    setEvent({ ...event, startDate: e.target.value })
-                  }
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="event-end">Date et heure de fin</Label>
-                <Input
-                  id="event-end"
-                  type="datetime-local"
-                  value={event.endDate || ""}
-                  onChange={(e) =>
-                    setEvent({ ...event, endDate: e.target.value })
-                  }
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="event-description">Description (optionnel)</Label>
-              <Textarea
-                id="event-description"
-                value={event.description}
-                onChange={(e) =>
-                  setEvent({ ...event, description: e.target.value })
-                }
-                placeholder="Détails de l'événement..."
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      default:
-        return <div>Type de QR code non pris en charge</div>;
-    }
-  };
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Accueil</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator>
-            <ChevronRight className="h-4 w-4" />
-          </BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/tools">Outils</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator>
-            <ChevronRight className="h-4 w-4" />
-          </BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/tools/qr-generator">
-              Générateur de QR codes
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="max-w-6xl mx-auto p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      {/* Breadcrumb */}
+      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <span>Accueil</span>
+        <ChevronRight className="h-4 w-4" />
+        <span>Outils</span>
+        <ChevronRight className="h-4 w-4" />
+        <span className="text-gray-900 dark:text-gray-100">
+          Générateur de QR codes
+        </span>
+      </div>
 
+      {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4">Générateur de QR codes</h1>
-        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+          Générateur de QR codes
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
           Créez facilement des QR codes personnalisés pour vos sites web,
-          contacts, WiFi, et bien plus. Personnalisez l&#39;apparence et
+          contacts, WiFi, et bien plus. Personnalisez l&apos;apparence et
           téléchargez au format de votre choix.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
         <div className="lg:col-span-2">
-          <Card className="p-6 border-2">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="mb-6"
-            >
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="content">Créer un QR code</TabsTrigger>
-                <TabsTrigger value="download" disabled={!generatedQR}>
-                  Télécharger
-                </TabsTrigger>
-              </TabsList>
+          <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            {/* Status de la librairie */}
+            {!isLibraryLoaded && (
+              <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded">
+                <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                  Chargement de la librairie QR Code en cours...
+                </p>
+              </div>
+            )}
 
-              <TabsContent value="content">
-                <div className="space-y-6">
-                  <div>
-                    <Label className="block font-medium mb-2">
-                      Type de contenu
-                    </Label>
-                    <RadioGroup
-                      value={qrType}
-                      onValueChange={setQrType}
-                      className="grid grid-cols-2 sm:grid-cols-3 gap-2"
-                    >
-                      {qrTypes.map((type) => (
-                        <div key={type.id} className="flex items-center">
-                          <RadioGroupItem
-                            value={type.id}
-                            id={`type-${type.id}`}
-                            className="mr-2"
-                          />
-                          <Label
-                            htmlFor={`type-${type.id}`}
-                            className="flex items-center cursor-pointer"
-                          >
-                            <span className="mr-2">{type.icon}</span>
-                            {type.name}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 dark:border-gray-600 mb-6">
+              <button
+                onClick={() => setActiveTab("content")}
+                className={`px-4 py-2 font-medium ${
+                  activeTab === "content"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
+              >
+                Créer un QR code
+              </button>
+              <button
+                onClick={() => setActiveTab("download")}
+                disabled={!generatedQR}
+                className={`px-4 py-2 font-medium ml-4 ${
+                  activeTab === "download" && generatedQR
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Télécharger
+              </button>
+            </div>
 
-                  <Separator />
-
-                  {renderForm()}
-
-                  <Separator />
-
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="appearance">
-                      <AccordionTrigger className="font-medium">
-                        Options d&#39;apparence et avancées
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-4 pt-2">
-                          <div>
-                            <Label htmlFor="qr-size">Taille</Label>
-                            <div className="flex items-center gap-4 mt-1">
-                              <Slider
-                                id="qr-size"
-                                min={100}
-                                max={400}
-                                step={10}
-                                value={[size]}
-                                onValueChange={(value) => setSize(value[0])}
-                                className="flex-1"
-                              />
-                              <span className="text-sm font-mono w-12 text-right">
-                                {size}px
-                              </span>
-                            </div>
-                          </div>
-
-                          <div>
-                            <Label htmlFor="qr-margin">Marge</Label>
-                            <div className="flex items-center gap-4 mt-1">
-                              <Slider
-                                id="qr-margin"
-                                min={0}
-                                max={10}
-                                step={1}
-                                value={[margin]}
-                                onValueChange={(value) => setMargin(value[0])}
-                                className="flex-1"
-                              />
-                              <span className="text-sm font-mono w-12 text-right">
-                                {margin}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="bg-color">Couleur de fond</Label>
-                              <div className="flex mt-1">
-                                <div
-                                  className="w-10 h-10 rounded-l-md border border-r-0 flex items-center justify-center"
-                                  style={{ backgroundColor: backgroundColor }}
-                                ></div>
-                                <Input
-                                  id="fg-color"
-                                  type="text"
-                                  value={foregroundColor}
-                                  onChange={(e) =>
-                                    setForegroundColor(e.target.value)
-                                  }
-                                  className="rounded-l-none"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <Label htmlFor="error-correction">
-                                Niveau de correction d&#39;erreur
-                              </Label>
-                              <Select
-                                value={errorCorrection}
-                                onValueChange={(value) =>
-                                  setErrorCorrection(
-                                    value as "M" | "L" | "Q" | "H"
-                                  )
-                                }
-                              >
-                                <SelectTrigger
-                                  id="error-correction"
-                                  className="mt-1"
-                                >
-                                  <SelectValue placeholder="Sélectionner" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="L">
-                                    <div className="flex items-center">
-                                      <span>Faible (L)</span>
-                                      <Badge variant="outline" className="ml-2">
-                                        7%
-                                      </Badge>
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="M">
-                                    <div className="flex items-center">
-                                      <span>Standard (M)</span>
-                                      <Badge variant="outline" className="ml-2">
-                                        15%
-                                      </Badge>
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="Q">
-                                    <div className="flex items-center">
-                                      <span>Élevé (Q)</span>
-                                      <Badge variant="outline" className="ml-2">
-                                        25%
-                                      </Badge>
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="H">
-                                    <div className="flex items-center">
-                                      <span>Maximum (H)</span>
-                                      <Badge variant="outline" className="ml-2">
-                                        30%
-                                      </Badge>
-                                    </div>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Un niveau plus élevé permet de scanner le QR
-                                code même s&#39;il est partiellement endommagé.
-                              </p>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                              <Switch
-                                id="with-logo"
-                                checked={withLogo}
-                                onCheckedChange={setWithLogo}
-                              />
-                              <Label htmlFor="with-logo">
-                                Ajouter un logo au centre
-                              </Label>
-                            </div>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-
-                  <div className="flex justify-end mt-6">
-                    <Button
-                      onClick={handleGenerateQR}
-                      disabled={isGenerating}
-                      className="w-full md:w-auto"
-                    >
-                      {isGenerating ? "Génération..." : "Générer le QR code"}
-                    </Button>
+            {activeTab === "content" && (
+              <div className="space-y-6">
+                {/* Type Selection */}
+                <div>
+                  <label className="block text-sm font-medium mb-3 text-gray-900 dark:text-gray-100">
+                    Type de contenu
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {qrTypes.map((type) => (
+                      <label
+                        key={type.id}
+                        className="flex items-center cursor-pointer text-gray-900 dark:text-gray-100"
+                      >
+                        <input
+                          type="radio"
+                          name="qrType"
+                          value={type.id}
+                          checked={qrType === type.id}
+                          onChange={(e) => setQrType(e.target.value)}
+                          className="mr-2"
+                        />
+                        <span className="mr-2">{type.icon}</span>
+                        <span className="text-sm">{type.name}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
-              </TabsContent>
-              <TabsContent value="download">
-                {generatedQR && (
-                  <div className="space-y-6">
-                    <div className="flex flex-col items-center">
-                      <div className="mb-4 p-4 bg-white rounded-lg shadow-sm border">
-                        <img
-                          src={generatedQR.dataURL}
-                          alt="QR Code généré"
-                          className="mx-auto"
-                          style={{ width: size, height: size }}
-                        />
-                      </div>
-                      <p className="text-sm text-gray-500 max-w-md text-center">
-                        Scannez ce QR code avec l&#39;appareil photo de votre
-                        smartphone ou une application de lecture de QR code.
-                      </p>
-                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-                      <Button onClick={() => downloadQRCode("svg")}>
-                        Télécharger en SVG
-                      </Button>
-                      <Button onClick={() => downloadQRCode("png")}>
-                        Télécharger en PNG
-                      </Button>
-                      <Button onClick={copyQRImage} className="sm:col-span-2">
-                        {copied ? "Copié!" : "Copier l'image"}
-                      </Button>
-                    </div>
+                <hr className="border-gray-200 dark:border-gray-600" />
 
-                    <Separator className="my-6" />
+                {/* Form Fields */}
+                <QRFormFields
+                  qrType={qrType}
+                  text={text}
+                  setText={setText}
+                  formData={formData}
+                  setFormData={setFormData}
+                  enableTracking={enableTracking}
+                />
 
+                <hr className="border-gray-200 dark:border-gray-600" />
+
+                {/* Options d'apparence */}
+                <div className="space-y-4">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                    Options d&apos;apparence
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Button
-                        variant="outline"
-                        onClick={() => setActiveTab("content")}
+                      <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                        Taille: {size}px
+                      </label>
+                      <input
+                        type="range"
+                        min="100"
+                        max="400"
+                        step="10"
+                        value={size}
+                        onChange={(e) => setSize(parseInt(e.target.value))}
                         className="w-full"
-                      >
-                        Retour à l&#39;éditeur
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-1">
-          <Card className="p-6 border-2">
-            <h2 className="text-xl font-bold mb-4">Historique récent</h2>
-            {history.length > 0 ? (
-              <div className="space-y-4">
-                {history.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex items-center space-x-3"
-                    onClick={() => loadFromHistory(item)}
-                  >
-                    <div className="flex-shrink-0">
-                      <img
-                        src={item.preview}
-                        alt={`QR code ${item.type}`}
-                        className="w-12 h-12 border"
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {item.content.substring(0, 30)}
-                        {item.content.length > 30 ? "..." : ""}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(item.date).toLocaleDateString()}
-                      </p>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                        Marge: {margin}
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value={margin}
+                        onChange={(e) => setMargin(parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                        Couleur de fond
+                      </label>
+                      <div className="flex">
+                        <div
+                          className="w-10 h-10 rounded-l border border-r-0 border-gray-300 dark:border-gray-600"
+                          style={{ backgroundColor }}
+                        />
+                        <input
+                          type="text"
+                          value={backgroundColor}
+                          onChange={(e) => setBackgroundColor(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-r focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                        Couleur avant-plan
+                      </label>
+                      <div className="flex">
+                        <div
+                          className="w-10 h-10 rounded-l border border-r-0 border-gray-300 dark:border-gray-600"
+                          style={{ backgroundColor: foregroundColor }}
+                        />
+                        <input
+                          type="text"
+                          value={foregroundColor}
+                          onChange={(e) => setForegroundColor(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-r focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                        Niveau de correction
+                      </label>
+                      <select
+                        value={errorCorrection}
+                        onChange={(e) =>
+                          setErrorCorrection(
+                            e.target.value as "L" | "M" | "Q" | "H"
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="L">Faible (L) - 7%</option>
+                        <option value="M">Standard (M) - 15%</option>
+                        <option value="Q">Élevé (Q) - 25%</option>
+                        <option value="H">Maximum (H) - 30%</option>
+                      </select>
                     </div>
                   </div>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearHistory}
-                  className="w-full mt-4"
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="enable-tracking"
+                        checked={enableTracking}
+                        onChange={(e) => setEnableTracking(e.target.checked)}
+                        className="rounded"
+                      />
+                      <label
+                        htmlFor="enable-tracking"
+                        className="text-sm text-gray-900 dark:text-gray-100 flex items-center"
+                      >
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        Activer le suivi
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-6">
+                  <button
+                    onClick={handleGenerateQR}
+                    disabled={isGenerating || !isLibraryLoaded}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  >
+                    {isGenerating
+                      ? "Génération..."
+                      : !isLibraryLoaded
+                      ? "Chargement..."
+                      : "Générer le QR code"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "download" && generatedQR && (
+              <div className="space-y-6">
+                <div className="flex flex-col items-center">
+                  <div className="mb-4 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
+                    <Image
+                      src={generatedQR.dataURL}
+                      alt="QR Code généré"
+                      width={size}
+                      height={size}
+                      className="mx-auto"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md text-center">
+                    Scannez ce QR code avec l&apos;appareil photo de votre
+                    smartphone ou une application de lecture de QR code.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={() => downloadQRCode("png")}
+                    className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Télécharger PNG
+                  </button>
+                  <button
+                    onClick={copyQRImage}
+                    className="flex items-center justify-center px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    {copied ? "Copié!" : "Copier l'image"}
+                  </button>
+                </div>
+
+                <hr className="border-gray-200 dark:border-gray-600" />
+
+                <button
+                  onClick={() => setActiveTab("content")}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  Effacer l&#39;historique
-                </Button>
+                  Retour à l&apos;éditeur
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sidebar avec historique et stats */}
+        <div className="lg:col-span-1">
+          <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                <Eye className="h-5 w-5 mr-2" />
+                Historique récent
+              </h2>
+              {history.some((item) => item.trackingId) && (
+                <button
+                  onClick={() => {
+                    const trackingIds = history
+                      .map((item) => item.trackingId)
+                      .filter(Boolean) as string[];
+                    loadViewStats(trackingIds);
+                  }}
+                  disabled={loadingStats}
+                  className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
+                  title="Actualiser les statistiques"
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${loadingStats ? "animate-spin" : ""}`}
+                  />
+                </button>
+              )}
+            </div>
+
+            {/* Résumé des stats */}
+            {Object.keys(qrStats).length > 0 && (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Total vues:
+                  </span>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">
+                    {Object.values(qrStats).reduce(
+                      (sum, stat) => sum + stat.views,
+                      0
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    QR actifs:
+                  </span>
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {
+                      Object.values(qrStats).filter((stat) => stat.views > 0)
+                        .length
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {history.length > 0 ? (
+              <div className="space-y-4">
+                {history.map((item) => {
+                  const stats = qrStats[item.trackingId || ""];
+                  return (
+                    <div
+                      key={item.id}
+                      className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                      onClick={() => loadFromHistory(item)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <Image
+                            src={item.preview}
+                            alt={`QR code ${item.type}`}
+                            width={48}
+                            height={48}
+                            className="border border-gray-200 dark:border-gray-600 rounded"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
+                            {(item.originalContent || item.content).substring(
+                              0,
+                              25
+                            )}
+                            {(item.originalContent || item.content).length > 25
+                              ? "..."
+                              : ""}
+                          </p>
+
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {new Date(item.date).toLocaleDateString("fr-FR")}
+                            </p>
+
+                            {item.trackingId && (
+                              <div className="flex items-center gap-2">
+                                {loadingStats && !stats ? (
+                                  <div className="flex items-center text-xs text-gray-400">
+                                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                    <span>...</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center text-xs">
+                                    <Eye className="h-3 w-3 mr-1 text-blue-500" />
+                                    <span
+                                      className={`font-medium ${
+                                        (stats?.views || 0) > 0
+                                          ? "text-blue-600 dark:text-blue-400"
+                                          : "text-gray-500 dark:text-gray-400"
+                                      }`}
+                                    >
+                                      {stats?.views || 0}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {item.trackingId && stats?.lastViewed && (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                              Dernière vue:{" "}
+                              {new Date(stats.lastViewed).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </p>
+                          )}
+
+                          {!item.trackingId && (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic">
+                              Sans suivi
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <div className="flex gap-2 mt-6">
+                  <button
+                    onClick={clearHistory}
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Effacer l&apos;historique
+                  </button>
+                </div>
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                Aucun QR code récent
-              </p>
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">📱</div>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Aucun QR code récent
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Vos QR codes générés apparaîtront ici
+                </p>
+              </div>
             )}
-          </Card>
+          </div>
         </div>
       </div>
     </div>
